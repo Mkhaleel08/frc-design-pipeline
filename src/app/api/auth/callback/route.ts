@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   const clientSecret = process.env.SLACK_CLIENT_SECRET;
   const redirectUri = process.env.SLACK_REDIRECT_URI;
 
-  const tokenResponse = await fetch('https://slack.com/api/oauth.v2.access', {
+  const tokenResponse = await fetch('https://slack.com/api/oauth.access', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
