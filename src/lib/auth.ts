@@ -57,5 +57,13 @@ export function getSlackAuthUrl(): string {
   const scopes = ['users:read', 'users.profile:read'];
   const state = Math.random().toString(36).substring(7);
 
-  return `https://slack.com/oauth/v2/authorize?client_id=${clientId}&scope=${scopes.join(',')}&redirect_uri=${encodeURIComponent(redirectUri!)}&state=${state}`;
+  // Log for debugging
+  console.log('Building auth URL with:');
+  console.log('  client_id:', clientId);
+  console.log('  redirect_uri:', redirectUri);
+
+  const url = `https://slack.com/oauth/v2/authorize?client_id=${clientId}&scope=${scopes.join(',')}&redirect_uri=${encodeURIComponent(redirectUri!)}&state=${state}`;
+  console.log('  final URL:', url.substring(0, 100) + '...');
+
+  return url;
 }
