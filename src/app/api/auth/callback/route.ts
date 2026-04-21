@@ -27,18 +27,30 @@ export async function GET(request: Request) {
 
   const tokenData = await tokenResponse.json();
   
-  if (!tokenData.ok || !tokenData.access_token) {
+  console.log('Slack OAuth response:', JSON.stringify(tokenData));
+  
+  if (!tokenData.ok) {
+    console.error('Slack OAuth error:', tokenData);
+    return NextResponse.redirect(new URL('/?error=auth_failed', request.url));
+  }
+
+  const accessToken = tokenData.access_token || tokenData.authed_user?.access_token;
+  
+  if (!accessToken) {
+    console.error('No access token in response:', tokenData);
     return NextResponse.redirect(new URL('/?error=auth_failed', request.url));
   }
 
   const userResponse = await fetch('https://slack.com/api/users.profile.get', {
-    headers: { Authorization: `Bearer ${tokenData.access_token}` },
+    headers: { Authorization: `Bearer ${accessToken}` },
   });
 
   const userData = await userResponse.json();
   
+  console.log('Slack user response:', JSON.stringify(userData));
+  
   const user = {
-    id: userData.profile?.id || tokenData.authed_user?.id,
+    id: userData.profile?.id || tokenData.authed_user?.id || 'unknown',
     name: userData.profile?.real_name || 'Team Member',
     real_name: userData.profile?.real_name || 'Team Member',
     image_72: userData.profile?.image_72 || '',
@@ -47,7 +59,7 @@ export async function GET(request: Request) {
 
   await setSession({
     user,
-    accessToken: tokenData.access_token,
+    accessToken: accessToken,
     expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
   });
 
