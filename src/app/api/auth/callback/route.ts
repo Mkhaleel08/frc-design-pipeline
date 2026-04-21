@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
   const error = url.searchParams.get('error');
 
   if (error || !code) {
+    console.log('Error or no code:', error);
     return NextResponse.redirect(new URL('/?error=auth_failed', request.url));
   }
 
@@ -14,7 +15,8 @@ export async function GET(request: NextRequest) {
   const clientSecret = process.env.SLACK_CLIENT_SECRET;
   const redirectUri = process.env.SLACK_REDIRECT_URI;
 
-  const tokenResponse = await fetch('https://slack.com/api/oauth.access', {
+  // Use OpenID Connect token endpoint
+  const tokenResponse = await fetch('https://slack.com/api/openid.connect.token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
@@ -22,39 +24,43 @@ export async function GET(request: NextRequest) {
       client_secret: clientSecret!,
       code,
       redirect_uri: redirectUri!,
+      grant_type: 'authorization_code',
     }),
   });
 
   const tokenData = await tokenResponse.json();
   
-  console.log('Slack OAuth response:', JSON.stringify(tokenData));
+  console.log('OpenID token response:', JSON.stringify(tokenData));
   
   if (!tokenData.ok) {
-    console.error('Slack OAuth error:', tokenData);
+    console.error('OpenID token error:', tokenData);
     return NextResponse.redirect(new URL('/?error=auth_failed', request.url));
   }
 
-  const accessToken = tokenData.access_token || tokenData.authed_user?.access_token;
+  const accessToken = tokenData.access_token;
+  const idToken = tokenData.id_token;
   
-  if (!accessToken) {
-    console.error('No access token in response:', tokenData);
+  if (!accessToken || !idToken) {
+    console.error('Missing tokens:', tokenData);
     return NextResponse.redirect(new URL('/?error=auth_failed', request.url));
   }
 
-  const userResponse = await fetch('https://slack.com/api/users.profile.get', {
+  // Use OpenID Connect userInfo endpoint
+  const userResponse = await fetch('https://slack.com/api/openid.connect.userInfo', {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
 
   const userData = await userResponse.json();
   
-  console.log('Slack user response:', JSON.stringify(userData));
+  console.log('OpenID userInfo response:', JSON.stringify(userData));
   
+  // Extract user info from OpenID response
   const user = {
-    id: userData.profile?.id || tokenData.authed_user?.id || 'unknown',
-    name: userData.profile?.real_name || 'Team Member',
-    real_name: userData.profile?.real_name || 'Team Member',
-    image_72: userData.profile?.image_72 || '',
-    email: userData.profile?.email || '',
+    id: userData.sub || 'unknown',
+    name: userData.name || 'Team Member',
+    real_name: userData.name || 'Team Member',
+    image_72: userData.picture || '',
+    email: userData.email || '',
   };
 
   await setSession({
