@@ -56,9 +56,9 @@ export function getSlackAuthUrl(): string {
   const redirectUri = process.env.SLACK_REDIRECT_URI;
   const state = Math.random().toString(36).substring(7);
   
-  // Use standard OAuth v2 authorize endpoint
-  const url = `https://slack.com/oauth/v2/authorize?client_id=${clientId}&scope=openid,profile,email&redirect_uri=${encodeURIComponent(redirectUri!)}&state=${state}&response_type=code`;
-  console.log('OAuth URL:', url);
+  // Use OpenID Connect endpoint for Sign in with Slack
+  const url = `https://slack.com/openid/connect/authorize?response_type=code&scope=openid%20profile%20email&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri!)}&state=${state}&nonce=${state}`;
+  console.log('OpenID auth URL:', url);
 
   return url;
 }
