@@ -54,7 +54,8 @@ export async function clearSession(): Promise<void> {
 export function getSlackAuthUrl(): string {
   const clientId = process.env.SLACK_CLIENT_ID;
   const redirectUri = process.env.SLACK_REDIRECT_URI;
-  const scopes = ['users:read'];
+  // Use identity.basic for Sign in with Slack
+  const scopes = ['identity.basic', 'identity.email', 'identity.avatar'];
   const state = Math.random().toString(36).substring(7);
 
   // Log for debugging
