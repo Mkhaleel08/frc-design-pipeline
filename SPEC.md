@@ -1,38 +1,37 @@
-# FRC Design Pipeline App Specification
+# FRC Design Pipeline App - Specification
 
 ## Project Overview
 - **Project Name:** FRC Design Pipeline
-- **Type:** Kanban-style engineering workflow tracker (Single-page webapp)
-- **Core Functionality:** Manage design requests through stages: Submitted → Assigned → In Progress → Review → Fabrication → Complete
-- **Target Users:** FRC robotics team members (Designers, Fabrication, Leads)
+- **Type:** Next.js Kanban webapp with App Router
+- **Core Functionality:** Manage design requests through stages with Slack auth, notifications, and persistent storage
+- **Target Users:** FRC robotics team members with Slack accounts
+
+## Tech Stack
+- Next.js 16 (App Router)
+- Tailwind CSS
+- Upstash Redis (Vercel KV replacement) for persistence
+- Slack OAuth for authentication
+- Slack Incoming Webhooks for notifications
+- Vercel deployment
 
 ## UI/UX Specification
 
 ### Layout Structure
-- **Sticky Header** (64px height): App title, view toggle (Board/Activity Log), "New Request" button
-- **Stats Bar** (48px height): Count per stage displayed as pills
-- **Main Content Area**:
-  - Board View: Horizontal scrolling Kanban with 6 columns
-  - Activity Log View: Vertical list of all events
-- **Modal Overlay**: For request details and form inputs
-
-### Responsive Breakpoints
-- Desktop: Full 6-column Kanban (min-width: 1024px)
-- Tablet: Scrollable columns (768px - 1023px)
-- Mobile: Stacked columns with horizontal scroll (< 768px)
+- **Sticky Header** (64px): Logo, view toggle, user avatar/logout
+- **Stats Bar** (48px): Count per stage
+- **Main Content**: Kanban board or Activity Log view
+- **Modals**: Request detail, create form
 
 ### Visual Design
-
-#### Color Palette
-- **Background:** #0D0D0D (near-black)
-- **Surface:** #1A1A1A (cards, modals)
-- **Surface Elevated:** #242424 (hover states)
+- **Background:** #0D0D0D
+- **Surface:** #1A1A1A
+- **Surface Elevated:** #242424
 - **Border:** #333333
 - **Text Primary:** #FFFFFF
 - **Text Secondary:** #A0A0A0
-- **Text Muted:** #666666
+- **Accent:** #22C55E (green)
 
-#### Stage Colors
+### Stage Colors
 - Submitted: #6366F1 (Indigo)
 - Assigned: #8B5CF6 (Violet)
 - In Progress: #F59E0B (Amber)
@@ -40,90 +39,15 @@
 - Fabrication: #10B981 (Emerald)
 - Complete: #22C55E (Green)
 
-#### Priority Colors
-- High: #EF4444 (Red)
-- Medium: #F59E0B (Amber)
-- Low: #22C55E (Green)
+### Priority Colors
+- High: #EF4444
+- Medium: #F59E0B
+- Low: #22C55E
 
-#### Typography
-- **Font Family:** "JetBrains Mono", monospace (techy/engineering feel)
-- **Headings:** 600 weight
-- **Body:** 400 weight
-- **Title:** 24px
-- **Section Headers:** 14px uppercase, letter-spacing 0.1em
-- **Body Text:** 14px
-- **Small Text:** 12px
+## Data Model
 
-#### Spacing System
-- Base unit: 4px
-- Card padding: 16px
-- Column gap: 16px
-- Section margins: 24px
-
-#### Visual Effects
-- Card shadows: 0 4px 6px rgba(0,0,0,0.3)
-- Modal backdrop: rgba(0,0,0,0.8) with blur
-- Hover transitions: 150ms ease
-- Stage indicator: 4px left border on cards
-
-### Components
-
-#### Header
-- Logo/Title: "FRC Design Pipeline" with gear icon
-- View Toggle: Segmented control (Board | Activity Log)
-- New Request Button: Primary action, green accent
-
-#### Stats Bar
-- Horizontal pill layout
-- Each pill shows stage name + count
-- Stage colors as subtle background tint
-
-#### Kanban Card
-- Stage indicator (4px left border with stage color)
-- Title (bold, truncate if long)
-- Priority tag (colored pill)
-- Assignee avatar/initials
-- Notes indicator (comment icon if has notes)
-- Click opens detail modal
-
-#### Detail Modal
-- Full request information
-- Activity log section with timestamps
-- "Advance to Next Stage" button (if not complete)
-- Add note input
-- Delete button (with confirmation)
-- Close button (X)
-
-#### New Request Form (Modal)
-- Title input (required)
-- Description textarea
-- Priority dropdown (High/Medium/Low)
-- Assignee dropdown (from team members)
-- Role dropdown (Designer/Fabrication/Lead)
-- File/Link attachments textarea (multi-line)
-- Initial notes textarea
-- Submit and Cancel buttons
-
-#### Activity Log View
-- Chronological list of all events
-- Each entry shows: timestamp, request title, action type, details
-- Grouped by date
-
-## Functionality Specification
-
-### Core Features
-1. **Create Request:** Form to submit new design requests
-2. **View Board:** Kanban view grouped by stage
-3. **View Details:** Click card to see full info + activity log
-4. **Advance Stage:** Move request to next stage with automatic activity log entry
-5. **Add Notes:** Append timestamped notes to activity log
-6. **Delete Request:** Remove request with confirmation
-7. **View Activity Log:** Toggle to see all events across all requests
-8. **Stats Display:** Real-time count per stage
-
-### Data Model
 ```typescript
-interface Request {
+interface DesignRequest {
   id: string;
   title: string;
   description: string;
@@ -136,53 +60,76 @@ interface Request {
   createdAt: string;
   updatedAt: string;
   activity: Activity[];
+  createdBy: string; // Slack user ID
 }
 
 interface Activity {
   id: string;
-  type: 'created' | 'stage_change' | 'note_added' | 'updated';
+  type: 'created' | 'stage_change' | 'note_added';
   message: string;
   timestamp: string;
+  userId: string;
 }
+
+type Stage = 'Submitted' | 'Assigned' | 'In Progress' | 'Review' | 'Fabrication' | 'Complete';
 ```
 
-### Stage Flow
-- Submitted → Assigned → In Progress → Review → Fabrication → Complete
+## API Routes
 
-### Team Members (Hardcoded)
-- Alex Chen
-- Jordan Williams
-- Sam Rodriguez
-- Taylor Kim
-- Casey Johnson
-- Morgan Lee
-- Riley Thompson
+| Route | Method | Description |
+|-------|--------|------------|
+| /api/auth/login | GET | Slack OAuth login redirect |
+| /api/auth/callback | GET | Slack OAuth callback |
+| /api/auth/logout | POST | Clear session |
+| /api/auth/me | GET | Get current user |
+| /api/requests | GET | List all requests |
+| /api/requests | POST | Create request |
+| /api/requests/[id] | GET | Get request |
+| /api/requests/[id] | PUT | Update request |
+| /api/requests/[id] | DELETE | Delete request |
+| /api/requests/[id]/advance | POST | Advance stage |
+| /api/requests/[id]/note | POST | Add note |
 
-### User Interactions
-- Click card → Open detail modal
-- Click "New Request" → Open form modal
-- Click stage advance → Add activity log + update stage
-- Type note + submit → Append to activity log
-- Click delete → Confirm dialog → Remove
-- Toggle view → Switch between Board/Activity Log
-- Refresh page → Data persists via localStorage
+## Environment Variables
 
-### Edge Cases
-- Empty states for each stage
-- Long titles truncated with ellipsis
-- Activity log sorted by most recent first
-- Prevent advancing from "Complete" stage
+```
+SLACK_CLIENT_ID
+SLACK_CLIENT_SECRET
+SLACK_SIGNING_SECRET
+SLACK_REDIRECT_URI
+UPSTASH_REDIS_REST_URL
+UPSTASH_REDIS_REST_TOKEN
+SLACK_WEBHOOK_URL
+AUTH_SECRET
+```
+
+## Slack Notifications
+
+Events that trigger notifications:
+1. New request created
+2. Stage advanced
+3. Request completed (reached Complete stage)
+4. Note added
+
+## Security
+
+- All /api/* routes require valid Slack session
+- Session stored as HTTP-only cookie
+- Server-side input sanitization
+- Environment variables for all secrets
+- Rate limiting on API routes
 
 ## Acceptance Criteria
-1. App loads without errors
-2. Can create a new request with all fields
-3. Requests appear in correct Kanban columns
-4. Clicking a card shows detail modal with activity log
-5. Can advance stage and see activity log update
-6. Can add notes to a request
-7. Can delete a request
-8. Activity log view shows all events chronologically
-9. Stats bar shows accurate counts per stage
-10. Data persists after page refresh
-11. UI matches the dark, professional aesthetic specified
-12. All interactions feel smooth with appropriate transitions
+
+1. ✓ User can sign in with Slack
+2. ✓ User sees their Slack avatar/name after login
+3. ✓ Can create new design requests
+4. ✓ Requests persist in Upstash Redis
+5. ✓ Kanban board shows all requests by stage
+6. ✓ Can click card to see details
+7. ✓ Can advance stage
+8. ✓ Slack notifications sent on events
+9. ✓ Activity log shows all events
+10. ✓ Stats bar shows counts
+11. ✓ Data persists server-side
+12. ✓ Unauthenticated users redirected to login

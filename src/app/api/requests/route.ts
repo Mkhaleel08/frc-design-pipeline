@@ -1,0 +1,64 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getAllRequests, createRequest } from '@/lib/db';
+import { getSession } from '@/lib/auth';
+import { notifyNewRequest, generateId } from '@/lib/slack';
+import { DesignRequest } from '@/lib/types';
+
+export async function GET() {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const requests = await getAllRequests();
+  return NextResponse.json({ requests });
+}
+
+export async function POST(request: NextRequest) {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const body = await request.json();
+    
+    const { title, description, priority, assignee, role, attachments, notes } = body;
+    
+    if (!title || typeof title !== 'string' || !title.trim()) {
+      return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+    }
+
+    const now = new Date().toISOString();
+    const newRequest: DesignRequest = {
+      id: generateId(),
+      title: title.trim().slice(0, 200),
+      description: String(description || '').slice(0, 2000),
+      priority: priority || 'Medium',
+      assignee: assignee || session.user.real_name,
+      role: role || 'Designer',
+      attachments: String(attachments || '').slice(0, 5000),
+      notes: String(notes || '').slice(0, 2000),
+      stage: 'Submitted',
+      createdAt: now,
+      updatedAt: now,
+      activity: [{
+        id: generateId(),
+        type: 'created',
+        message: 'Request created',
+        timestamp: now,
+        userId: session.user.id,
+        userName: session.user.real_name,
+      }],
+      createdBy: session.user.id,
+    };
+
+    await createRequest(newRequest);
+    await notifyNewRequest(newRequest, session.user.real_name);
+
+    return NextResponse.json({ request: newRequest }, { status: 201 });
+  } catch (e) {
+    console.error('Error creating request:', e);
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+  }
+}
