@@ -54,16 +54,10 @@ export async function clearSession(): Promise<void> {
 export function getSlackAuthUrl(): string {
   const clientId = process.env.SLACK_CLIENT_ID;
   const redirectUri = process.env.SLACK_REDIRECT_URI;
-  const scopes = ['users:read', 'users.profile:read', 'chat:write'];
-  const state = Math.random().toString(36).substring(7);
-
-  // Log for debugging
-  console.log('Building auth URL with:');
-  console.log('  client_id:', clientId);
-  console.log('  redirect_uri:', redirectUri);
-
-  const url = `https://slack.com/oauth/v2/authorize?client_id=${clientId}&scope=${scopes.join(',')}&redirect_uri=${encodeURIComponent(redirectUri!)}&state=${state}`;
-  console.log('  final URL:', url.substring(0, 200));
+  
+  // Try using the /oauth/authorize endpoint (v1 style)
+  const url = `https://slack.com/oauth/authorize?client_id=${clientId}&scope=users:read,users.profile.read&redirect_uri=${encodeURIComponent(redirectUri!)}`;
+  console.log('  final URL:', url);
 
   return url;
 }
