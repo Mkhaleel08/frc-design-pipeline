@@ -1,15 +1,24 @@
-import { NextResponse } from 'next/server';
-import { getSlackAuthUrl } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
+import { setSession } from '@/lib/auth';
 
-export async function GET() {
-  const clientId = process.env.SLACK_CLIENT_ID;
-  console.log('SLACK_CLIENT_ID:', clientId);
-  console.log('SLACK_REDIRECT_URI:', process.env.SLACK_REDIRECT_URI);
-  
-  if (!clientId) {
-    return NextResponse.json({ error: 'SLACK_CLIENT_ID not configured' }, { status: 500 });
+export async function POST(request: NextRequest) {
+  const { email, password } = await request.json();
+
+  if (email !== process.env.AUTH_EMAIL || password !== process.env.AUTH_PASSWORD) {
+    return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
   }
-  
-  const authUrl = getSlackAuthUrl();
-  return NextResponse.redirect(authUrl);
+
+  await setSession({
+    user: {
+      id: email,
+      name: email.split('@')[0],
+      real_name: email.split('@')[0],
+      image_72: '',
+      email: email,
+    },
+    accessToken: 'password-auth',
+    expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
+  });
+
+  return NextResponse.json({ ok: true });
 }
