@@ -20,6 +20,14 @@ export async function POST(
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
+  const isLead = session.user.role === 'Lead';
+  const isAssignee = existing.assignee === session.user.name;
+
+  // Lead can advance any request, Designer can only advance their assigned requests
+  if (!isLead && !isAssignee) {
+    return NextResponse.json({ error: 'You can only advance requests assigned to you' }, { status: 403 });
+  }
+
   const currentIndex = STAGES.indexOf(existing.stage);
   if (currentIndex === -1 || currentIndex === STAGES.length - 1) {
     return NextResponse.json({ error: 'Already at final stage' }, { status: 400 });
@@ -34,7 +42,7 @@ export async function POST(
     message: `Moved to ${newStage}`,
     timestamp: now,
     userId: session.user.id,
-    userName: session.user.real_name,
+    userName: session.user.name,
   };
 
   const updated = await updateRequest(id, {
@@ -42,7 +50,7 @@ export async function POST(
     activity: [...existing.activity, activityEntry],
   });
 
-  await notifyStageChange(updated!, existing.stage, newStage, session.user.real_name);
+  await notifyStageChange(updated!, existing.stage, newStage, session.user.name);
 
   return NextResponse.json({ request: updated });
 }

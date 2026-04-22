@@ -1,9 +1,9 @@
 'use client';
 
-import { SlackUser } from './types';
+import { SessionUser } from './types';
 
 interface HeaderProps {
-  user: SlackUser | null;
+  user: SessionUser | null;
   view: 'board' | 'activity';
   onViewChange: (view: 'board' | 'activity') => void;
   onNewRequest: () => void;
@@ -58,14 +58,19 @@ export function Header({ user, view, onViewChange, onNewRequest, onLogout, isLoa
         </button>
 
         {user && (
-          <div className="flex items-center gap-2">
-            {user.image_72 ? (
-              <img src={user.image_72} alt={user.real_name} className="w-8 h-8 rounded-full" />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-[#333] flex items-center justify-center text-sm">
-                {user.real_name.charAt(0)}
-              </div>
-            )}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-[#A0A0A0]">{user.name}</span>
+              <span
+                className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                  user.role === 'Lead' 
+                    ? 'bg-[#6366F1] text-white' 
+                    : 'bg-[#333] text-[#A0A0A0]'
+                }`}
+              >
+                {user.role}
+              </span>
+            </div>
             <button
               onClick={onLogout}
               className="text-xs text-[#666] hover:text-white"

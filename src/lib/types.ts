@@ -2,7 +2,7 @@ export type Stage = 'Submitted' | 'Assigned' | 'In Progress' | 'Review' | 'Fabri
 
 export type Priority = 'High' | 'Medium' | 'Low';
 
-export type Role = 'Designer' | 'Fabrication' | 'Lead';
+export type UserRole = 'Designer' | 'Lead';
 
 export type ActivityType = 'created' | 'stage_change' | 'note_added';
 
@@ -21,7 +21,6 @@ export interface DesignRequest {
   description: string;
   priority: Priority;
   assignee: string;
-  role: Role;
   attachments: string;
   notes: string;
   stage: Stage;
@@ -29,18 +28,30 @@ export interface DesignRequest {
   updatedAt: string;
   activity: Activity[];
   createdBy: string;
+  dueDate?: string;
+  blobUrl?: string;
 }
 
-export interface SlackUser {
+export interface User {
   id: string;
+  email: string;
   name: string;
-  real_name: string;
-  image_72: string;
-  email?: string;
+  password: string;
+  role: UserRole;
+  createdAt: string;
+  slackMemberId?: string;
+}
+
+export interface SessionUser {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  slackMemberId?: string;
 }
 
 export interface Session {
-  user: SlackUser;
+  user: SessionUser;
   accessToken: string;
   expiresAt: number;
 }
@@ -61,15 +72,3 @@ export const PRIORITY_COLORS: Record<Priority, string> = {
   'Medium': '#F59E0B',
   'Low': '#22C55E'
 };
-
-export const TEAM_MEMBERS = [
-  'Alex Chen',
-  'Jordan Williams',
-  'Sam Rodriguez',
-  'Taylor Kim',
-  'Casey Johnson',
-  'Morgan Lee',
-  'Riley Thompson'
-];
-
-export const ROLES: Role[] = ['Designer', 'Fabrication', 'Lead'];

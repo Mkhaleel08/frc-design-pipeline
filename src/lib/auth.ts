@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
-import { SlackUser, Session } from './types';
+import { SessionUser, Session } from './types';
 
 const AUTH_COOKIE = 'frc-session';
 const SECRET = new TextEncoder().encode(process.env.AUTH_SECRET || 'fallback-secret-change-in-production');
@@ -18,7 +18,7 @@ export async function verifyToken(token: string): Promise<Session | null> {
     const exp = payload.exp! * 1000;
     if (Date.now() > exp) return null;
     return {
-      user: payload.user as SlackUser,
+      user: payload.user as SessionUser,
       accessToken: payload.accessToken as string,
       expiresAt: exp,
     };
@@ -51,14 +51,10 @@ export async function clearSession(): Promise<void> {
   cookieStore.delete(AUTH_COOKIE);
 }
 
-export function getSlackAuthUrl(): string {
-  const clientId = process.env.SLACK_CLIENT_ID;
-  const redirectUri = process.env.SLACK_REDIRECT_URI;
-  const state = Math.random().toString(36).substring(7);
-  
-  // Use OpenID Connect endpoint for Sign in with Slack
-  const url = `https://slack.com/openid/connect/authorize?response_type=code&scope=openid%20profile%20email&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri!)}&state=${state}&nonce=${state}`;
-  console.log('OpenID auth URL:', url);
-
-  return url;
+export function getClientIp(request: Request): string {
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+  return request.headers.get('x-real-ip') || 'unknown';
 }

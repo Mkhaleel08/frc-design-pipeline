@@ -38,6 +38,9 @@ export async function PUT(
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
+  const isLead = session.user.role === 'Lead';
+  const isOwner = existing.createdBy === session.user.id;
+
   try {
     const body = await request.json();
     const updates: Partial<typeof existing> = {};
@@ -45,10 +48,17 @@ export async function PUT(
     if (body.title !== undefined) updates.title = String(body.title).trim().slice(0, 200);
     if (body.description !== undefined) updates.description = String(body.description).slice(0, 2000);
     if (body.priority !== undefined) updates.priority = body.priority;
-    if (body.assignee !== undefined) updates.assignee = body.assignee;
-    if (body.role !== undefined) updates.role = body.role;
+    if (body.assignee !== undefined) {
+      // Only Lead can assign
+      if (!isLead) {
+        return NextResponse.json({ error: 'Only Leads can assign requests' }, { status: 403 });
+      }
+      updates.assignee = body.assignee;
+    }
     if (body.attachments !== undefined) updates.attachments = String(body.attachments).slice(0, 5000);
     if (body.notes !== undefined) updates.notes = String(body.notes).slice(0, 2000);
+    if (body.dueDate !== undefined) updates.dueDate = body.dueDate || undefined;
+    if (body.blobUrl !== undefined) updates.blobUrl = body.blobUrl || undefined;
 
     const updated = await updateRequest(id, updates);
     return NextResponse.json({ request: updated });
@@ -73,8 +83,13 @@ export async function DELETE(
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
+  // Only Lead can delete
+  if (session.user.role !== 'Lead') {
+    return NextResponse.json({ error: 'Only Leads can delete requests' }, { status: 403 });
+  }
+
   await deleteRequest(id);
-  await notifyRequestDeleted(existing, session.user.real_name);
+  await notifyRequestDeleted(existing, session.user.name);
   
   return NextResponse.json({ success: true });
 }
