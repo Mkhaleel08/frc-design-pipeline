@@ -34,14 +34,14 @@ export async function POST(
       message: note.slice(0, 1000),
       timestamp: now,
       userId: session.user.id,
-      userName: session.user.real_name,
+      userName: session.user.name,
     };
 
     const updated = await updateRequest(id, {
       activity: [...existing.activity, activityEntry],
     });
 
-    await notifyNoteAdded(updated!, note, session.user.real_name);
+    await notifyNoteAdded(updated!, note, session.user.name);
 
     return NextResponse.json({ request: updated });
   } catch {

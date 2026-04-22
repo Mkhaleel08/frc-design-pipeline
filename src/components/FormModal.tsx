@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { TEAM_MEMBERS, ROLES, Role } from './types';
 
 interface FormModalProps {
   onSubmit: (data: FormData) => Promise<void>;
@@ -14,9 +13,9 @@ export interface FormData {
   description: string;
   priority: 'High' | 'Medium' | 'Low';
   assignee: string;
-  role: Role;
   attachments: string;
   notes: string;
+  dueDate?: string;
 }
 
 export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
@@ -24,10 +23,10 @@ export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
     title: '',
     description: '',
     priority: 'Medium',
-    assignee: TEAM_MEMBERS[0],
-    role: 'Designer',
+    assignee: '',
     attachments: '',
     notes: '',
+    dueDate: '',
   });
 
   const handleChange = (field: keyof FormData) => (
@@ -96,32 +95,27 @@ export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
               </select>
             </div>
             <div>
-              <label className="text-xs text-[#666] uppercase tracking-wider">Role</label>
-              <select
-                value={formData.role}
-                onChange={handleChange('role')}
+              <label className="text-xs text-[#666] uppercase tracking-wider">Due Date</label>
+              <input
+                type="date"
+                value={formData.dueDate}
+                onChange={handleChange('dueDate')}
                 className="w-full mt-1 bg-[#242424] border border-[#333] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#22C55E]"
                 disabled={isLoading}
-              >
-                {ROLES.map(role => (
-                  <option key={role} value={role}>{role}</option>
-                ))}
-              </select>
+              />
             </div>
           </div>
 
           <div>
             <label className="text-xs text-[#666] uppercase tracking-wider">Assignee</label>
-            <select
+            <input
+              type="text"
               value={formData.assignee}
               onChange={handleChange('assignee')}
+              placeholder="Assignee name"
               className="w-full mt-1 bg-[#242424] border border-[#333] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#22C55E]"
               disabled={isLoading}
-            >
-              {TEAM_MEMBERS.map(member => (
-                <option key={member} value={member}>{member}</option>
-              ))}
-            </select>
+            />
           </div>
 
           <div>

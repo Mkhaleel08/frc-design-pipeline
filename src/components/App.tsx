@@ -7,7 +7,7 @@ import { KanbanBoard } from './KanbanBoard';
 import { ActivityLog } from './ActivityLog';
 import { DetailModal } from './DetailModal';
 import { FormModal, FormData } from './FormModal';
-import { DesignRequest, SlackUser } from './types';
+import { DesignRequest, SessionUser } from './types';
 
 function LoginForm({ onLogin, isLoading, error }: { onLogin: (email: string, password: string) => void; isLoading: boolean; error: string | null }) {
   const [email, setEmail] = useState('');
@@ -68,7 +68,7 @@ function LoginForm({ onLogin, isLoading, error }: { onLogin: (email: string, pas
 }
 
 export function App() {
-  const [user, setUser] = useState<SlackUser | null>(null);
+  const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'board' | 'activity'>('board');
   const [requests, setRequests] = useState<DesignRequest[]>([]);
@@ -125,9 +125,8 @@ export function App() {
         setUser({
           id: email,
           name: email.split('@')[0],
-          real_name: email.split('@')[0],
-          image_72: '',
           email: email,
+          role: 'Designer',
         });
         fetchRequests();
       } else {

@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    const { title, description, priority, assignee, role, attachments, notes } = body;
+    const { title, description, priority, assignee, attachments, notes, dueDate } = body;
     
     if (!title || typeof title !== 'string' || !title.trim()) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
@@ -35,8 +35,7 @@ export async function POST(request: NextRequest) {
       title: title.trim().slice(0, 200),
       description: String(description || '').slice(0, 2000),
       priority: priority || 'Medium',
-      assignee: assignee || session.user.real_name,
-      role: role || 'Designer',
+      assignee: assignee || session.user.name,
       attachments: String(attachments || '').slice(0, 5000),
       notes: String(notes || '').slice(0, 2000),
       stage: 'Submitted',
@@ -48,13 +47,14 @@ export async function POST(request: NextRequest) {
         message: 'Request created',
         timestamp: now,
         userId: session.user.id,
-        userName: session.user.real_name,
+        userName: session.user.name,
       }],
       createdBy: session.user.id,
+      dueDate: dueDate || undefined,
     };
 
     await createRequest(newRequest);
-    await notifyNewRequest(newRequest, session.user.real_name);
+    await notifyNewRequest(newRequest, session.user.name);
 
     return NextResponse.json({ request: newRequest }, { status: 201 });
   } catch (e) {

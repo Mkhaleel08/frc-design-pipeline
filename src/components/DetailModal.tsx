@@ -93,11 +93,14 @@ export function DetailModal({ request, onClose, onAdvance, onAddNote, onDelete }
                 <span className="text-sm">{request.assignee}</span>
               </div>
             </div>
-            <div>
-              <label className="text-xs text-[#666] uppercase tracking-wider">Role</label>
-              <p className="text-sm mt-1">{request.role}</p>
-            </div>
           </div>
+
+          {request.dueDate && (
+            <div>
+              <label className="text-xs text-[#666] uppercase tracking-wider">Due Date</label>
+              <p className="text-sm mt-1">{request.dueDate}</p>
+            </div>
+          )}
 
           <div>
             <label className="text-xs text-[#666] uppercase tracking-wider">Description</label>

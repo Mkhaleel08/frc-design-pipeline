@@ -21,6 +21,7 @@ export interface DesignRequest {
   description: string;
   priority: Priority;
   assignee: string;
+  role?: UserRole;
   attachments: string;
   notes: string;
   stage: Stage;
@@ -46,6 +47,7 @@ export interface SessionUser {
   id: string;
   email: string;
   name: string;
+  real_name?: string;
   role: UserRole;
   slackMemberId?: string;
 }
