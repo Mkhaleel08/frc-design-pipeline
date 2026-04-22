@@ -40,26 +40,27 @@ function KanbanCard({ request, onClick, idx }: { request: DesignRequest; onClick
   return (
     <div
       onClick={onClick}
-      className={`group bg-[#1F1F1F] hover:bg-[#262626] rounded-xl p-4 cursor-pointer transition-all duration-300 hover:scale-[1.01] hover:shadow-xl hover:shadow-black/30 border border-[#2A2A2A] hover:border-[#3A3A3A] ${
-        isOverdue ? 'ring-1 ring-red-500/30' : isWarning ? 'ring-1 ring-yellow-500/30' : ''
+      className={`group glass-card hover:border-[var(--accent)]/40 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${
+        isOverdue ? 'border-l-[3px] border-[var(--danger)]' : 
+        isWarning ? 'border-l-[3px] border-[var(--warning)]' :
+        'border-[var(--glass-border)]'
       }`}
       style={{ 
-        boxShadow: isOverdue || isWarning 
-          ? `0 4px 20px -3px ${isOverdue ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)'}`
-          : '0 2px 8px rgba(0, 0, 0, 0.2)'
+        borderLeftWidth: '3px',
+        borderLeftColor: isOverdue ? 'var(--danger)' : isWarning ? 'var(--warning)' : 'transparent',
       }}
     >
       <div className="flex items-start justify-between gap-2 mb-3">
-        <h4 className="text-sm font-medium text-white truncate flex-1 group-hover:text-[#10B981] transition-colors duration-200">
+        <h4 className="text-sm font-medium text-[var(--text-primary)] truncate flex-1 group-hover:text-[var(--accent)] transition-colors">
           {request.title}
         </h4>
         {isOverdue && (
-          <span className="text-[9px] px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 font-semibold animate-pulse">
+          <span className="text-[9px] px-2 py-0.5 rounded-full bg-[var(--danger-glow)] text-[var(--danger)] font-semibold animate-pulse">
             OVERDUE
           </span>
         )}
         {isWarning && !isOverdue && (
-          <span className="text-[9px] px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 font-semibold">
+          <span className="text-[9px] px-2 py-0.5 rounded-full bg-[var(--warning-glow)] text-[var(--warning)] font-semibold">
             DUE SOON
           </span>
         )}
@@ -67,7 +68,7 @@ function KanbanCard({ request, onClick, idx }: { request: DesignRequest; onClick
       
       <div className="flex items-center justify-between">
         <span
-          className="text-[10px] px-2.5 py-1 rounded-md font-medium"
+          className="text-[10px] px-2.5 py-1 rounded-lg font-medium"
           style={{ 
             backgroundColor: `${priorityColors[request.priority]}15`, 
             color: priorityColors[request.priority] 
@@ -78,12 +79,12 @@ function KanbanCard({ request, onClick, idx }: { request: DesignRequest; onClick
         
         <div className="flex items-center gap-2">
           {request.dueDate && !isOverdue && !isWarning && (
-            <span className="text-[10px] text-[#737373]">
+            <span className="text-[10px] text-[var(--text-muted)]">
               {new Date(request.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             </span>
           )}
           <div
-            className="w-7 h-7 rounded-full bg-gradient-to-br from-[#3A3A3A] to-[#4A4A4A] flex items-center justify-center text-[10px] font-semibold text-[#A1A1A1] ring-2 ring-[#171717] group-hover:ring-[#10B981]/30 transition-all duration-300"
+            className="w-7 h-7 rounded-lg glass border border-[var(--glass-border)] flex items-center justify-center text-[10px] font-semibold text-[var(--text-secondary)] transition-colors duration-200 group-hover:border-[var(--accent)]/50 group-hover:text-[var(--accent)]"
           >
             {getInitials(request.assignee)}
           </div>
@@ -91,7 +92,7 @@ function KanbanCard({ request, onClick, idx }: { request: DesignRequest; onClick
       </div>
       
       {request.activity.length > 1 && (
-        <div className="mt-3 pt-3 border-t border-[#2A2A2A] flex items-center gap-1 text-[10px] text-[#555]">
+        <div className="mt-3 pt-3 border-t border-[var(--glass-border)] flex items-center gap-1.5 text-[10px] text-[var(--text-muted)]">
           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9z" clipRule="evenodd" />
           </svg>
@@ -104,11 +105,11 @@ function KanbanCard({ request, onClick, idx }: { request: DesignRequest; onClick
 
 function SkeletonCard() {
   return (
-    <div className="bg-[#1F1F1F] rounded-xl p-4 border border-[#2A2A2A] animate-pulse">
-      <div className="h-4 w-3/4 bg-[#2A2A2A] rounded mb-3"></div>
+    <div className="glass-card rounded-xl p-4 animate-shimmer">
+      <div className="h-4 w-3/4 bg-[var(--surface-3)] rounded mb-3"></div>
       <div className="flex justify-between">
-        <div className="h-5 w-14 bg-[#2A2A2A] rounded"></div>
-        <div className="h-7 w-7 bg-[#2A2A2A] rounded-full"></div>
+        <div className="h-5 w-14 bg-[var(--surface-3)] rounded"></div>
+        <div className="h-7 w-7 bg-[var(--surface-3)] rounded-lg"></div>
       </div>
     </div>
   );
@@ -131,7 +132,7 @@ export function KanbanBoard({ requests, onCardClick, searchQuery, priorityFilter
   }
 
   return (
-    <div className="flex-1 flex gap-4 p-6 overflow-x-auto">
+    <div className="flex-1 flex gap-4 p-6 overflow-x-auto scroll-hide">
       {STAGES.map((stage, stageIdx) => {
         let stageRequests = filteredRequests.filter(r => r.stage === stage);
         
@@ -143,26 +144,28 @@ export function KanbanBoard({ requests, onCardClick, searchQuery, priorityFilter
         });
         
         return (
-          <div key={stage} className="flex-shrink-0 w-80 flex flex-col">
+          <div key={stage} className="flex-shrink-0 w-[300px] flex flex-col">
             <div
-              className="flex items-center gap-3 px-4 py-3 rounded-t-xl border-b-2"
+              className="flex items-center gap-3 px-4 py-3 rounded-t-xl border-b-[3px]"
               style={{ 
-                backgroundColor: `${STAGE_COLORS[stage]}08`,
+                backgroundColor: `${STAGE_COLORS[stage]}12`,
                 borderBottomColor: STAGE_COLORS[stage]
               }}
             >
-              <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: STAGE_COLORS[stage] }}></span>
-              <h3 className="text-xs font-semibold tracking-wide text-[#A1A1A1]">{stage}</h3>
-              <span className="ml-auto text-xs font-medium bg-[#262626] px-2.5 py-0.5 rounded-md text-[#737373]">
+              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: STAGE_COLORS[stage] }}></span>
+              <h3 className="text-xs font-semibold tracking-wide text-[var(--text-secondary)]">{stage}</h3>
+              <span className="ml-auto text-xs font-semibold glass px-2.5 py-0.5 rounded-lg text-[var(--text-muted)]">
                 {stageRequests.length}
               </span>
             </div>
-            <div className="flex-1 bg-[#171717] rounded-b-xl p-3 flex flex-col gap-3 min-h-[300px] border-x border-b border-[#2A2A2A]">
+            <div className="flex-1 glass rounded-b-xl p-3 flex flex-col gap-3 min-h-[200px] border-x border-b border-[var(--glass-border)]">
               {stageRequests.length === 0 ? (
-                <div className="flex items-center justify-center h-40 text-xs text-[#404040] border-2 border-dashed border-[#2A2A2A] rounded-xl">
+                <div className="flex items-center justify-center h-32 text-xs text-[var(--text-muted)] border-2 border-dashed border-[var(--glass-border)] rounded-xl">
                   <div className="text-center">
-                    <div className="mb-1">No requests</div>
-                    <div className="text-[#333333]">Drop one here</div>
+                    <svg className="w-8 h-8 mx-auto mb-2 text-[var(--text-muted)]/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                    </svg>
+                    <div>No requests</div>
                   </div>
                 </div>
               ) : (
@@ -170,7 +173,7 @@ export function KanbanBoard({ requests, onCardClick, searchQuery, priorityFilter
                   <div 
                     key={req.id} 
                     className="animate-slideUp"
-                    style={{ animationDelay: `${stageIdx * 50 + idx * 30}ms` }}
+                    style={{ animationDelay: `${idx * 50}ms` }}
                   >
                     <KanbanCard
                       request={req}

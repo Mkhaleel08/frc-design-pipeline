@@ -35,29 +35,33 @@ export function StatsBar({ requests }: StatsBarProps) {
   }).length;
 
   return (
-    <div className="bg-[#171717] border-b border-[#2A2A2A] h-14 flex items-center px-6 gap-2 overflow-x-auto">
+    <div className="glass border-b border-[var(--glass-border)] h-12 flex items-center px-6 gap-2 overflow-x-auto scroll-hide">
       {STAGES.map((stage) => (
         <div
           key={stage}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs whitespace-nowrap transition-all duration-200 hover:bg-[#1F1F1F] cursor-default border border-transparent hover:border-[#2A2A2A]"
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all duration-200 border ${
+            stats[stage] === 0 
+              ? 'opacity-50 border-transparent bg-transparent' 
+              : 'glass-button cursor-default'
+          }`}
         >
           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STAGE_COLORS[stage] }}></span>
-          <span className="text-[#A1A1A1] font-medium">{stage}</span>
-          <span className="font-semibold text-white tabular-nums">{stats[stage]}</span>
+          <span className="text-[var(--text-secondary)] font-medium">{stage}</span>
+          <span className="font-semibold text-[var(--text-primary)] tabular-nums">{stats[stage]}</span>
         </div>
       ))}
       {dueSoon > 0 && (
-        <div className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs whitespace-nowrap bg-[#F59E0B]/10 border border-[#F59E0B]/20">
-          <span className="w-2 h-2 rounded-full bg-[#F59E0B]"></span>
-          <span className="text-[#F59E0B] font-medium">Due Soon</span>
-          <span className="font-semibold text-white tabular-nums">{dueSoon}</span>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs whitespace-nowrap bg-[var(--warning-glow)] border border-[var(--warning)]/30">
+          <span className="w-2 h-2 rounded-full bg-[var(--warning)] animate-pulse"></span>
+          <span className="text-[var(--warning)] font-medium">Due Soon</span>
+          <span className="font-semibold text-[var(--text-primary)] tabular-nums">{dueSoon}</span>
         </div>
       )}
       {overdue > 0 && (
-        <div className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs whitespace-nowrap bg-[#EF4444]/10 border border-[#EF4444]/20">
-          <span className="w-2 h-2 rounded-full bg-[#EF4444]"></span>
-          <span className="text-[#EF4444] font-medium">Overdue</span>
-          <span className="font-semibold text-white tabular-nums">{overdue}</span>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs whitespace-nowrap bg-[var(--danger-glow)] border border-[var(--danger)]/30">
+          <span className="w-2 h-2 rounded-full bg-[var(--danger)]"></span>
+          <span className="text-[var(--danger)] font-medium">Overdue</span>
+          <span className="font-semibold text-[var(--text-primary)] tabular-nums">{overdue}</span>
         </div>
       )}
     </div>

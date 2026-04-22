@@ -9,69 +9,156 @@ import { DetailModal } from './DetailModal';
 import { FormModal, FormData } from './FormModal';
 import { DesignRequest, SessionUser, STAGES } from './types';
 
-function LoginForm({ onLogin, isLoading, error }: { onLogin: (email: string, password: string) => void; isLoading: boolean; error: string | null }) {
+function RegisterForm({ onRegister, isLoading, error }: { onRegister: (name: string, email: string, password: string, inviteCode: string) => void; isLoading: boolean; error: string | null }) {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
+  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string }>({});
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin(email, password);
+    const newErrors: { name?: string; email?: string; password?: string } = {};
+
+    if (!name.trim()) {
+      newErrors.name = 'Name is required';
+    } else if (name.trim().length < 2) {
+      newErrors.name = 'Name must be at least 2 characters';
+    }
+
+    if (!email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!email.includes('@')) {
+      newErrors.email = 'Please enter a valid email';
+    }
+
+    if (!password) {
+      newErrors.password = 'Password is required';
+    } else if (password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
+    onRegister(name, email, password, inviteCode);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0C0C0C]">
-      <div className="text-center w-full max-w-sm px-6">
-        <div className="mb-10 animate-float">
-          <div className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center shadow-2xl shadow-[#10B981]/30">
-            <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+    <div className="min-h-screen flex items-center justify-center gradient-mesh p-4">
+      <div className="glass-card rounded-2xl w-full max-w-md p-8">
+        <div className="text-center mb-8">
+          <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center shadow-2xl accent-glow">
+            <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
               <path d="M19.5 12c0-.23-.02-.45-.06-.68l1.86-1.41c.4-.3.51-.86.26-1.3l-1.87-3.23c-.25-.44-.79-.62-1.25-.42l-2.15.91c-.37-.26-.76-.49-1.17-.68l-.29-2.31c-.06-.5-.49-.88-1-.88h-3.73c-.51 0-.94.38-1 .88l-.29 2.31c-.41.19-.8.42-1.17.68l-2.15-.91c-.46-.2-1-.02-1.25.42L2.41 8.62c-.25.44-.14.99.26 1.3l1.86 1.41c-.04.23-.06.45-.06.68s.02.45.06.68l-1.86 1.41c-.4.3-.51.86-.26 1.3l1.87 3.23c.25.44.79.62 1.25.42l2.15-.91c.37.26.76.49 1.17.68l.29 2.31c.06.5.49.88 1 .88h3.73c.51 0 .94-.38 1-.88l.29-2.31c.41-.19.8-.42 1.17-.68l2.15.91c.46.2 1 .02 1.25-.42l1.87-3.23c.25-.44.14-.99-.26-1.3l-1.86-1.41c.04-.23.06-.45.06-.68z"/>
             </svg>
           </div>
         </div>
-        <h1 className="text-2xl font-semibold mb-2 text-white">FRC Design Pipeline</h1>
-        <p className="text-[#737373] mb-8">Sign in to continue</p>
+        <h1 className="text-2xl font-semibold mb-2 text-center text-[var(--text-primary)]">FRC Design Pipeline</h1>
+        <p className="text-[var(--text-muted)] mb-6 text-center">Create your account to get started</p>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-            required
-            className="w-full px-4 py-3 bg-[#171717] border border-[#2A2A2A] rounded-xl text-sm focus:outline-none focus:border-[#10B981] focus:bg-[#1F1F1F] transition-all"
-            disabled={isLoading}
-          />
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            required
-            className="w-full px-4 py-3 bg-[#171717] border border-[#2A2A2A] rounded-xl text-sm focus:outline-none focus:border-[#10B981] focus:bg-[#1F1F1F] transition-all"
-            disabled={isLoading}
-          />
+          <div>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Full Name"
+              className="w-full px-4 py-3.5 glass-input rounded-xl text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none transition-all"
+              disabled={isLoading}
+            />
+            {errors.name && (
+              <p className="mt-2 text-left text-xs text-[var(--danger)] flex items-center gap-1">
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {errors.name}
+              </p>
+            )}
+          </div>
+          <div>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email Address"
+              className="w-full px-4 py-3.5 glass-input rounded-xl text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none transition-all"
+              disabled={isLoading}
+            />
+            {errors.email && (
+              <p className="mt-2 text-left text-xs text-[var(--danger)] flex items-center gap-1">
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {errors.email}
+              </p>
+            )}
+          </div>
+          <div>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password (min 8 characters)"
+              className="w-full px-4 py-3.5 glass-input rounded-xl text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none transition-all"
+              disabled={isLoading}
+            />
+            {errors.password && (
+              <p className="mt-2 text-left text-xs text-[var(--danger)] flex items-center gap-1">
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {errors.password}
+              </p>
+            )}
+          </div>
+          <div>
+            <input
+              type="text"
+              value={inviteCode}
+              onChange={(e) => setInviteCode(e.target.value)}
+              placeholder="Invite Code (optional)"
+              className="w-full px-4 py-3.5 glass-input rounded-xl text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none transition-all"
+              disabled={isLoading}
+            />
+          </div>
           
           {error && (
-            <div className="p-3 bg-[#EF4444]/10 rounded-lg border border-[#EF4444]/20">
-              <p className="text-[#EF4444] text-sm">{error}</p>
+            <div className="p-3 bg-[var(--danger-glow)] rounded-xl border border-[var(--danger)]/30">
+              <p className="text-[var(--danger)] text-sm flex items-center gap-2">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {error}
+              </p>
             </div>
           )}
           
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-[#10B981] to-[#059669] hover:from-[#059669] hover:to-[#047857] disabled:opacity-50 text-white font-medium rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#10B981]/20"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-gradient-to-r from-[#10B981] to-[#059669] hover:from-[#059669] hover:to-[#047857] disabled:opacity-50 text-white font-semibold rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-[var(--accent-glow)] accent-glow"
           >
             {isLoading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                <span>Signing in...</span>
+                <span>Creating account...</span>
               </>
             ) : (
-              'Sign In'
+              'Create Account'
             )}
           </button>
         </form>
+
+        <p className="text-center mt-6 text-sm text-[var(--text-muted)]">
+          Already have an account?{' '}
+          <a href="/login" className="text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors font-medium">
+            Sign in
+          </a>
+        </p>
       </div>
     </div>
   );
@@ -177,31 +264,31 @@ export function App() {
     }
   }
 
-  async function handleLogin(email: string, password: string) {
+  async function handleRegister(name: string, email: string, password: string, inviteCode: string) {
     setIsSubmitting(true);
     setError(null);
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ name, email, password, inviteCode }),
       });
 
       if (res.ok) {
         const data = await res.json();
         setUser({
           id: email,
-          name: email.split('@')[0],
+          name: name,
           email: email,
           role: 'Designer',
         });
         fetchRequests();
       } else {
         const data = await res.json();
-        setError(data.error || 'Login failed');
+        setError(data.error || 'Registration failed');
       }
     } catch (e) {
-      setError('Login failed');
+      setError('Registration failed');
     } finally {
       setIsSubmitting(false);
     }
@@ -351,10 +438,10 @@ export function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0C0C0C]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-2 border-[#10B981] border-t-transparent rounded-full animate-spin"></div>
-          <div className="text-[#737373] text-sm">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center gradient-mesh">
+        <div className="glass-card rounded-2xl p-8 flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-[var(--text-muted)] text-sm">Loading...</div>
         </div>
       </div>
     );
@@ -362,7 +449,7 @@ export function App() {
 
   if (!user) {
     return (
-      <LoginForm onLogin={handleLogin} isLoading={isSubmitting} error={error} />
+      <RegisterForm onRegister={handleRegister} isLoading={isSubmitting} error={error} />
     );
   }
 
@@ -376,7 +463,7 @@ export function App() {
   });
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col gradient-mesh">
       <Header
         user={user}
         view={view}
@@ -389,9 +476,9 @@ export function App() {
       <StatsBar requests={requests} />
 
       {view === 'board' && (
-        <div className="flex items-center gap-3 px-6 py-3 bg-[#171717] border-b border-[#2A2A2A]">
+        <div className="flex items-center gap-3 px-6 py-3 glass border-y border-[var(--glass-border)]">
           <div className="relative">
-            <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#555]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
@@ -399,13 +486,13 @@ export function App() {
               placeholder="Search requests..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-3 py-2 bg-[#1F1F1F] border border-[#2A2A2A] rounded-lg text-sm focus:outline-none focus:border-[#10B981] w-48 transition-all"
+              className="pl-9 pr-3 py-2 glass-input rounded-lg text-sm focus:outline-none w-48 transition-all text-[var(--text-primary)] placeholder-[var(--text-muted)]"
             />
           </div>
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="px-3 py-2 bg-[#1F1F1F] border border-[#2A2A2A] rounded-lg text-sm focus:outline-none focus:border-[#10B981] transition-all"
+            className="px-3 py-2 glass-input rounded-lg text-sm focus:outline-none transition-all text-[var(--text-primary)]"
           >
             <option value="All">All Priorities</option>
             <option value="High">High</option>
@@ -415,7 +502,7 @@ export function App() {
           <select
             value={assigneeFilter}
             onChange={(e) => setAssigneeFilter(e.target.value)}
-            className="px-3 py-2 bg-[#1F1F1F] border border-[#2A2A2A] rounded-lg text-sm focus:outline-none focus:border-[#10B981] transition-all"
+            className="px-3 py-2 glass-input rounded-lg text-sm focus:outline-none transition-all text-[var(--text-primary)]"
           >
             <option value="All">All Assignees</option>
             {[...new Set(requests.map(r => r.assignee).filter(Boolean))].map(a => (
@@ -425,7 +512,7 @@ export function App() {
           {hasFilters && (
             <button
               onClick={() => { setSearchQuery(''); setPriorityFilter('All'); setAssigneeFilter('All'); }}
-              className="text-xs text-[#737373] hover:text-white px-2 py-1 hover:bg-[#262626] rounded-lg transition-all"
+              className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] px-2 py-1 hover:bg-[var(--surface-3)] rounded-lg transition-all cursor-pointer"
             >
               Clear
             </button>
@@ -434,7 +521,10 @@ export function App() {
       )}
 
       {error && (
-        <div className="mx-6 mt-4 px-4 py-3 bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-lg text-[#EF4444] text-sm animate-slideDown">
+        <div className="mx-6 mt-4 px-4 py-3 bg-[var(--danger-glow)] border border-[var(--danger)]/30 rounded-xl text-[var(--danger)] text-sm flex items-center gap-2">
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
           {error}
         </div>
       )}
