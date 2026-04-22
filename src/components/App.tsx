@@ -76,6 +76,9 @@ export function App() {
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('All');
+  const [assigneeFilter, setAssigneeFilter] = useState('All');
 
   useEffect(() => {
     checkAuth();
@@ -239,6 +242,46 @@ export function App() {
       />
       <StatsBar requests={requests} />
 
+      {view === 'board' && (
+        <div className="flex items-center gap-4 px-6 py-3 bg-[#1A1A1A] border-b border-[#333]">
+          <input
+            type="text"
+            placeholder="Search requests..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="px-3 py-1.5 bg-[#242424] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-[#22C55E] w-48"
+          />
+          <select
+            value={priorityFilter}
+            onChange={(e) => setPriorityFilter(e.target.value)}
+            className="px-3 py-1.5 bg-[#242424] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-[#22C55E]"
+          >
+            <option value="All">All Priorities</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+          <select
+            value={assigneeFilter}
+            onChange={(e) => setAssigneeFilter(e.target.value)}
+            className="px-3 py-1.5 bg-[#242424] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-[#22C55E]"
+          >
+            <option value="All">All Assignees</option>
+            {[...new Set(requests.map(r => r.assignee).filter(Boolean))].map(a => (
+              <option key={a} value={a}>{a}</option>
+            ))}
+          </select>
+          {(searchQuery || priorityFilter !== 'All' || assigneeFilter !== 'All') && (
+            <button
+              onClick={() => { setSearchQuery(''); setPriorityFilter('All'); setAssigneeFilter('All'); }}
+              className="text-xs text-[#666] hover:text-white"
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
+      )}
+
       {error && (
         <div className="mx-6 mt-4 px-4 py-2 bg-red-500/20 border border-red-500 rounded-lg text-red-400 text-sm">
           {error}
@@ -249,6 +292,9 @@ export function App() {
         <KanbanBoard
           requests={requests}
           onCardClick={setSelectedRequest}
+          searchQuery={searchQuery}
+          priorityFilter={priorityFilter}
+          assigneeFilter={assigneeFilter}
         />
       ) : (
         <ActivityLog requests={requests} />

@@ -120,3 +120,42 @@ export async function notifyRequestDeleted(request: DesignRequest, userName: str
 export function generateId(): string {
   return Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
 }
+
+export async function sendSlackDM(userId: string, message: string): Promise<void> {
+  const botToken = process.env.SLACK_BOT_TOKEN;
+  if (!botToken) {
+    console.log('No SLACK_BOT_TOKEN configured, skipping DM');
+    return;
+  }
+
+  await fetch('https://slack.com/api/chat.postMessage', {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${botToken}`
+    },
+    body: JSON.stringify({
+      channel: userId,
+      text: message,
+    }),
+  });
+}
+
+export async function notifyAssignment(request: DesignRequest, assignedToName: string): Promise<void> {
+  await sendSlackNotification({
+    text: `Request assigned: ${request.title}`,
+    blocks: [
+      {
+        type: 'section',
+        text: { type: 'mrkdwn', text: `*${request.title}* has been assigned to *${assignedToName}*` }
+      },
+      {
+        type: 'section',
+        fields: [
+          { type: 'mrkdwn', text: `*Priority:*\n${request.priority}` },
+          { type: 'mrkdwn', text: `*Stage:*\n${request.stage}` }
+        ]
+      }
+    ]
+  });
+}
