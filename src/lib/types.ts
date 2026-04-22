@@ -6,9 +6,19 @@ export type SubTeam = 'CAD' | 'Mechanical' | 'Electrical' | 'Business' | 'Progra
 
 export type Label = 'Urgent' | 'Needs Review' | 'Approved' | 'Blocked' | 'Ready' | 'In Progress';
 
+export type BuildPhase = 'Shape' | 'BuildCycle1' | 'BuildCycle2' | 'Cooldown' | 'ParkingLot';
+
+export type TaskStatus = 'Not Started' | 'In Progress' | 'Blocked' | 'Done';
+
+export type ManufacturingStatus = 'CAD' | 'CAM' | 'Cut' | 'Assembly';
+
+export type WiringStatus = 'Planned' | 'Routed' | 'Crimped' | 'Tested';
+
+export type SoftwareSubsystem = 'Drivetrain' | 'Arm' | 'Intake' | 'Vision' | 'Auto' | 'Diagnostics';
+
 export type UserRole = 'Designer' | 'Lead';
 
-export type ActivityType = 'created' | 'stage_change' | 'note_added' | 'version_created';
+export type ActivityType = 'created' | 'stage_change' | 'note_added' | 'version_created' | 'phase_change' | 'triage';
 
 export interface VersionSnapshot {
   version: number;
@@ -37,11 +47,14 @@ export interface DesignRequest {
   description: string;
   priority: Priority;
   assignee: string;
+  taskOwner: string;
   role?: UserRole;
   attachments: string;
   notes: string;
   stage: Stage;
+  taskStatus: TaskStatus;
   subTeam: SubTeam | null;
+  buildPhase: BuildPhase;
   labels: Label[];
   version: number;
   versionHistory: VersionSnapshot[];
@@ -51,6 +64,16 @@ export interface DesignRequest {
   createdBy: string;
   dueDate?: string;
   blobUrl?: string;
+  dependency?: string;
+  isBlocked: boolean;
+  blockerReason?: string;
+  manufacturingStatus?: ManufacturingStatus;
+  machineRequired?: string;
+  weightEstimate?: number;
+  wiringStatus?: WiringStatus;
+  componentReceived?: boolean;
+  testedOnRobot?: boolean;
+  softwareSubsystem?: SoftwareSubsystem;
 }
 
 export interface User {
@@ -80,9 +103,27 @@ export interface Session {
 
 export const STAGES: Stage[] = ['Submitted', 'Assigned', 'In Progress', 'Review', 'Fabrication', 'Complete'];
 
+export const TASK_STATUSES: TaskStatus[] = ['Not Started', 'In Progress', 'Blocked', 'Done'];
+
 export const SUBTEAMS: SubTeam[] = ['CAD', 'Mechanical', 'Electrical', 'Business', 'Programming', 'Strategy'];
 
+export const BUILD_PHASES: BuildPhase[] = ['Shape', 'BuildCycle1', 'BuildCycle2', 'Cooldown', 'ParkingLot'];
+
 export const LABELS: Label[] = ['Urgent', 'Needs Review', 'Approved', 'Blocked', 'Ready', 'In Progress'];
+
+export const MANUFACTURING_STATUSES: ManufacturingStatus[] = ['CAD', 'CAM', 'Cut', 'Assembly'];
+
+export const WIRING_STATUSES: WiringStatus[] = ['Planned', 'Routed', 'Crimped', 'Tested'];
+
+export const SOFTWARE_SUBSYSTEMS: SoftwareSubsystem[] = ['Drivetrain', 'Arm', 'Intake', 'Vision', 'Auto', 'Diagnostics'];
+
+export const PHASE_CONFIG: Record<BuildPhase, { name: string; startWeek: number; endWeek: number; deadline: string }> = {
+  'Shape': { name: 'Shape', startWeek: 0, endWeek: 1, deadline: '2025-01-12' },
+  'BuildCycle1': { name: 'Build Cycle 1', startWeek: 2, endWeek: 3, deadline: '2025-01-26' },
+  'BuildCycle2': { name: 'Build Cycle 2', startWeek: 4, endWeek: 5, deadline: '2025-02-09' },
+  'Cooldown': { name: 'Cooldown', startWeek: 6, endWeek: 6, deadline: '2025-02-16' },
+  'ParkingLot': { name: 'Parking Lot', startWeek: -1, endWeek: -1, deadline: '' }
+};
 
 export interface WorkloadEntry {
   name: string;
@@ -131,4 +172,33 @@ export const LABEL_COLORS: Record<Label, string> = {
   'Blocked': '#DC2626',
   'Ready': '#3B82F6',
   'In Progress': '#8B5CF6'
+};
+
+export const PHASE_COLORS: Record<BuildPhase, string> = {
+  'Shape': '#6366F1',
+  'BuildCycle1': '#8B5CF6',
+  'BuildCycle2': '#F59E0B',
+  'Cooldown': '#10B981',
+  'ParkingLot': '#6B7280'
+};
+
+export const TASK_STATUS_COLORS: Record<TaskStatus, string> = {
+  'Not Started': '#6B7280',
+  'In Progress': '#F59E0B',
+  'Blocked': '#EF4444',
+  'Done': '#10B981'
+};
+
+export const MANUFACTURING_COLORS: Record<ManufacturingStatus, string> = {
+  'CAD': '#6366F1',
+  'CAM': '#8B5CF6',
+  'Cut': '#F59E0B',
+  'Assembly': '#10B981'
+};
+
+export const WIRING_COLORS: Record<WiringStatus, string> = {
+  'Planned': '#6366F1',
+  'Routed': '#8B5CF6',
+  'Crimped': '#F59E0B',
+  'Tested': '#10B981'
 };

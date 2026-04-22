@@ -1,18 +1,20 @@
 'use client';
 
-import { SessionUser, DesignRequest } from './types';
+import { SessionUser, DesignRequest, SubTeam, SUBTEAMS, SUBTEAM_COLORS } from './types';
 
 interface HeaderProps {
   user: SessionUser | null;
-  view: 'board' | 'calendar' | 'workload' | 'activity';
-  onViewChange: (view: 'board' | 'calendar' | 'workload' | 'activity') => void;
+  view: 'board' | 'calendar' | 'workload' | 'activity' | 'timeline' | 'parkinglot' | 'blockers';
+  onViewChange: (view: 'board' | 'calendar' | 'workload' | 'activity' | 'timeline' | 'parkinglot' | 'blockers') => void;
+  subTeam?: SubTeam | 'All';
+  onSubTeamChange?: (subTeam: SubTeam | 'All') => void;
   onNewRequest: () => void;
   onLogout: () => void;
   requests: DesignRequest[];
   isLoading: boolean;
 }
 
-export function Header({ user, view, onViewChange, onNewRequest, onLogout, requests, isLoading }: HeaderProps) {
+export function Header({ user, view, onViewChange, subTeam, onSubTeamChange, onNewRequest, onLogout, requests, isLoading }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 glass border-b border-[var(--glass-border)]">
       <div className="flex items-center justify-between px-6 h-16">
@@ -39,6 +41,37 @@ export function Header({ user, view, onViewChange, onNewRequest, onLogout, reque
           >
             Board
           </button>
+          <button
+            onClick={() => onViewChange('timeline')}
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
+              view === 'timeline'
+                ? 'bg-[var(--accent)] text-white shadow-lg'
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)]'
+            }`}
+          >
+            Timeline
+          </button>
+          <button
+            onClick={() => onViewChange('parkinglot')}
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
+              view === 'parkinglot'
+                ? 'bg-[var(--accent)] text-white shadow-lg'
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)]'
+            }`}
+          >
+            Parking Lot
+          </button>
+          <button
+            onClick={() => onViewChange('blockers')}
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
+              view === 'blockers'
+                ? 'bg-[var(--accent)] text-white shadow-lg'
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)]'
+            }`}
+          >
+            Blockers
+          </button>
+          <div className="w-px h-5 bg-[var(--glass-border)] mx-1"></div>
           <button
             onClick={() => onViewChange('calendar')}
             className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
@@ -70,6 +103,38 @@ export function Header({ user, view, onViewChange, onNewRequest, onLogout, reque
             Activity
           </button>
         </div>
+
+        {view === 'board' && onSubTeamChange && (
+          <div className="flex items-center gap-2 px-6 py-2 glass border-b border-[var(--glass-border)]">
+            <span className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">Filter by Sub-Team:</span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => onSubTeamChange('All')}
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                  subTeam === 'All'
+                    ? 'bg-[var(--accent)] text-white'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)]'
+                }`}
+              >
+                All
+              </button>
+              {SUBTEAMS.filter(t => t !== 'Strategy').map(team => (
+                <button
+                  key={team}
+                  onClick={() => onSubTeamChange(team)}
+                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                    subTeam === team
+                      ? 'text-white'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)]'
+                  }`}
+                  style={subTeam !== team ? { backgroundColor: `${SUBTEAM_COLORS[team]}20`, color: SUBTEAM_COLORS[team] } : undefined}
+                >
+                  {team}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex items-center gap-4">
           <button

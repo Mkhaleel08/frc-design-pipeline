@@ -9,7 +9,8 @@ import { DetailModal } from './DetailModal';
 import { FormModal, FormData } from './FormModal';
 import { CalendarView } from './CalendarView';
 import { WorkloadView } from './WorkloadView';
-import { DesignRequest, SessionUser, STAGES, SUBTEAMS, SubTeam, LABELS, Label } from './types';
+import { FRCTaskBoard } from './FRCTaskBoard';
+import { DesignRequest, SessionUser, STAGES, SUBTEAMS, SubTeam, LABELS, Label, PHASE_COLORS, BUILD_PHASES, BuildPhase, PHASE_CONFIG, SUBTEAM_COLORS } from './types';
 
 function RegisterForm({ onRegister, isLoading, error }: { onRegister: (name: string, email: string, password: string, inviteCode: string) => void; isLoading: boolean; error: string | null }) {
   const [name, setName] = useState('');
@@ -219,9 +220,10 @@ function SkeletonKanbanBoard() {
 export function App() {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [requestsLoading, setRequestsLoading] = useState(false);
-  const [view, setView] = useState<'board' | 'calendar' | 'workload' | 'activity'>('board');
   const [requests, setRequests] = useState<DesignRequest[]>([]);
+  const [requestsLoading, setRequestsLoading] = useState(false);
+  const [view, setView] = useState<'board' | 'calendar' | 'workload' | 'activity' | 'timeline' | 'parkinglot' | 'blockers'>('board');
+  const [subTeamFilter, setSubTeamFilter] = useState<SubTeam | 'All'>('All');
   const [selectedRequest, setSelectedRequest] = useState<DesignRequest | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -229,7 +231,6 @@ export function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('All');
   const [assigneeFilter, setAssigneeFilter] = useState('All');
-  const [subTeamFilter, setSubTeamFilter] = useState('All');
   const [labelFilter, setLabelFilter] = useState('All');
 
   useEffect(() => {
@@ -302,6 +303,15 @@ export function App() {
     await fetch('/api/auth/logout', { method: 'POST' });
     setUser(null);
     setRequests([]);
+    setSelectedRequest(null);
+    setShowForm(false);
+    setView('board');
+    setSubTeamFilter('All');
+    setSearchQuery('');
+    setPriorityFilter('All');
+    setAssigneeFilter('All');
+    setLabelFilter('All');
+    setError(null);
   }
 
   async function handleCreateRequest(formData: FormData) {
@@ -457,15 +467,14 @@ export function App() {
     );
   }
 
-  const hasFilters = searchQuery || priorityFilter !== 'All' || assigneeFilter !== 'All' || subTeamFilter !== 'All' || labelFilter !== 'All';
+  const hasFilters = searchQuery || priorityFilter !== 'All' || assigneeFilter !== 'All' || labelFilter !== 'All';
 
   const filteredRequests = requests.filter(r => {
     const matchesSearch = r.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesPriority = priorityFilter === 'All' || r.priority === priorityFilter;
     const matchesAssignee = assigneeFilter === 'All' || r.assignee === assigneeFilter;
-    const matchesSubTeam = subTeamFilter === 'All' || r.subTeam === subTeamFilter;
     const matchesLabel = labelFilter === 'All' || (r.labels && r.labels.includes(labelFilter as Label));
-    return matchesSearch && matchesPriority && matchesAssignee && matchesSubTeam && matchesLabel;
+    return matchesSearch && matchesPriority && matchesAssignee && matchesLabel;
   });
 
   return (
@@ -474,6 +483,8 @@ export function App() {
         user={user}
         view={view}
         onViewChange={setView}
+        subTeam={subTeamFilter}
+        onSubTeamChange={setSubTeamFilter}
         onNewRequest={() => setShowForm(true)}
         onLogout={handleLogout}
         requests={requests}
@@ -517,7 +528,7 @@ export function App() {
           </select>
           <select
             value={subTeamFilter}
-            onChange={(e) => setSubTeamFilter(e.target.value)}
+            onChange={(e) => setSubTeamFilter(e.target.value as SubTeam | 'All')}
             className="px-3 py-2 glass-input rounded-lg text-sm focus:outline-none transition-all text-[var(--text-primary)]"
           >
             <option value="All">All Teams</option>
@@ -558,12 +569,94 @@ export function App() {
       {view === 'board' ? (
         requestsLoading ? (
           <SkeletonKanbanBoard />
-        ) : (
+        ) : subTeamFilter === 'All' ? (
           <KanbanBoard
             requests={filteredRequests}
             onCardClick={setSelectedRequest}
           />
+        ) : (
+          <FRCTaskBoard
+            requests={filteredRequests.filter(r => r.subTeam === subTeamFilter)}
+            subTeam={subTeamFilter}
+            onTaskClick={setSelectedRequest}
+          />
         )
+      ) : view === 'timeline' ? (
+        <div className="flex-1 p-6">
+          <div className="grid grid-cols-4 gap-4">
+            {BUILD_PHASES.filter(p => p !== 'ParkingLot').map(phase => {
+              const phaseRequests = requests.filter(r => r.buildPhase === phase);
+              return (
+                <div key={phase} className="glass rounded-xl p-4">
+                  <div 
+                    className="flex items-center gap-2 mb-4 pb-3 border-b"
+                    style={{ borderBottomColor: PHASE_COLORS[phase] }}
+                  >
+                    <div 
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: PHASE_COLORS[phase] }}
+                    />
+                    <h3 className="text-sm font-semibold text-[var(--text-primary)]">{phase}</h3>
+                    <span className="ml-auto text-xs text-[var(--text-muted)]">
+                      {PHASE_CONFIG[phase].deadline}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs text-[var(--text-muted)]">
+                      <span>Total: {phaseRequests.length}</span>
+                      <span>Done: {phaseRequests.filter(r => r.taskStatus === 'Done').length}</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-[var(--surface-3)] overflow-hidden">
+                      <div 
+                        className="h-full rounded-full transition-all"
+                        style={{ 
+                          width: `${phaseRequests.length ? (phaseRequests.filter(r => r.taskStatus === 'Done').length / phaseRequests.length) * 100 : 0}%`,
+                          backgroundColor: PHASE_COLORS[phase]
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : view === 'parkinglot' ? (
+        <FRCTaskBoard
+          requests={requests.filter(r => r.buildPhase === 'ParkingLot')}
+          subTeam={subTeamFilter === 'All' ? 'Mechanical' : subTeamFilter}
+          onTaskClick={setSelectedRequest}
+        />
+      ) : view === 'blockers' ? (
+        <div className="flex-1 p-6">
+          <div className="glass rounded-xl p-6">
+            <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Blocked Tasks</h3>
+            {requests.filter(r => r.isBlocked || r.taskStatus === 'Blocked').length === 0 ? (
+              <p className="text-sm text-[var(--text-muted)]">No blocked tasks</p>
+            ) : (
+              <div className="space-y-3">
+                {requests.filter(r => r.isBlocked || r.taskStatus === 'Blocked').map(task => (
+                  <div 
+                    key={task.id}
+                    onClick={() => setSelectedRequest(task)}
+                    className="flex items-center justify-between p-3 bg-[var(--surface-2)] rounded-lg cursor-pointer hover:bg-[var(--surface-3)] transition-all"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-[var(--danger)]">⚠</span>
+                      <span className="text-sm text-[var(--text-primary)]">{task.title}</span>
+                      {task.subTeam && (
+                        <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: `${SUBTEAM_COLORS[task.subTeam]}20`, color: SUBTEAM_COLORS[task.subTeam] }}>
+                          {task.subTeam}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs text-[var(--text-muted)]">{task.blockerReason}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       ) : view === 'calendar' ? (
         <CalendarView
           requests={filteredRequests}

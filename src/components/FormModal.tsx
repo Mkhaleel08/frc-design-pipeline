@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { SubTeam, SUBTEAMS, Label, LABELS, LABEL_COLORS } from './types';
+import { SubTeam, SUBTEAMS, Label, LABELS, LABEL_COLORS, BuildPhase, BUILD_PHASES, TaskStatus, TASK_STATUSES, ManufacturingStatus, MANUFACTURING_STATUSES, WiringStatus, WIRING_STATUSES, SoftwareSubsystem, SOFTWARE_SUBSYSTEMS, SessionUser } from './types';
 
 interface FormModalProps {
   onSubmit: (data: FormData) => Promise<void>;
@@ -19,6 +19,19 @@ export interface FormData {
   attachments: string;
   notes: string;
   dueDate?: string;
+  buildPhase: BuildPhase;
+  taskStatus: TaskStatus;
+  dependency?: string;
+  isBlocked: boolean;
+  blockerReason?: string;
+  manufacturingStatus?: ManufacturingStatus;
+  machineRequired?: string;
+  weightEstimate?: number;
+  wiringStatus?: WiringStatus;
+  componentReceived?: boolean;
+  testedOnRobot?: boolean;
+  softwareSubsystem?: SoftwareSubsystem;
+  leadOverride?: boolean;
 }
 
 export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
@@ -32,6 +45,19 @@ export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
     attachments: '',
     notes: '',
     dueDate: '',
+    buildPhase: 'ParkingLot',
+    taskStatus: 'Not Started',
+    dependency: '',
+    isBlocked: false,
+    blockerReason: '',
+    manufacturingStatus: undefined,
+    machineRequired: '',
+    weightEstimate: undefined,
+    wiringStatus: undefined,
+    componentReceived: false,
+    testedOnRobot: false,
+    softwareSubsystem: undefined,
+    leadOverride: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -170,6 +196,183 @@ export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="glass-input rounded-xl p-4">
+              <label className="text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">Build Phase</label>
+              <select
+                value={formData.buildPhase}
+                onChange={handleChange('buildPhase')}
+                className="w-full mt-2 bg-transparent border-0 text-[var(--text-primary)] text-sm focus:outline-none focus:ring-0"
+                disabled={isLoading}
+              >
+                {BUILD_PHASES.map(phase => (
+                  <option key={phase} value={phase} className="bg-[var(--bg-vibrant-1)]">{phase}</option>
+                ))}
+              </select>
+            </div>
+            <div className="glass-input rounded-xl p-4">
+              <label className="text-xs text-[var(--text-secondary)] uppercase tracking-wider font-semibold">Task Status</label>
+              <select
+                value={formData.taskStatus}
+                onChange={handleChange('taskStatus')}
+                className="w-full mt-2 bg-transparent border-0 text-[var(--text-primary)] text-sm focus:outline-none focus:ring-0"
+                disabled={isLoading}
+              >
+                {TASK_STATUSES.map(status => (
+                  <option key={status} value={status} className="bg-[var(--bg-vibrant-1)]">{status}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {(formData.subTeam === 'Mechanical' || formData.subTeam === 'CAD') && (
+            <div className="glass-input rounded-xl p-4 space-y-3">
+              <label className="text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">Mechanical Fields</label>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Manufacturing Status</label>
+                  <select
+                    value={formData.manufacturingStatus || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, manufacturingStatus: (e.target.value || undefined) as ManufacturingStatus }))}
+                    className="w-full mt-1 bg-transparent border-0 text-[var(--text-primary)] text-sm focus:outline-none focus:ring-0"
+                    disabled={isLoading}
+                  >
+                    <option value="" className="bg-[var(--bg-vibrant-1)]">Not Started</option>
+                    {MANUFACTURING_STATUSES.map(status => (
+                      <option key={status} value={status} className="bg-[var(--bg-vibrant-1)]">{status}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Machine/Tool Required</label>
+                  <input
+                    type="text"
+                    value={formData.machineRequired || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, machineRequired: e.target.value || undefined }))}
+                    placeholder="e.g., Lathe, Mill, CNC"
+                    className="w-full mt-1 bg-transparent border-0 text-[var(--text-primary)] placeholder-[var(--text-muted)] text-sm focus:outline-none focus:ring-0"
+                    disabled={isLoading}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Weight Estimate (lbs)</label>
+                  <input
+                    type="number"
+                    value={formData.weightEstimate || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, weightEstimate: e.target.value ? parseFloat(e.target.value) : undefined }))}
+                    placeholder="0.0"
+                    step="0.1"
+                    className="w-full mt-1 bg-transparent border-0 text-[var(--text-primary)] placeholder-[var(--text-muted)] text-sm focus:outline-none focus:ring-0"
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {formData.subTeam === 'Electrical' && (
+            <div className="glass-input rounded-xl p-4 space-y-3">
+              <label className="text-xs text-[var(--text-secondary)] uppercase tracking-wider font-semibold">Electrical Fields</label>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Wiring Status</label>
+                  <select
+                    value={formData.wiringStatus || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, wiringStatus: (e.target.value || undefined) as WiringStatus }))}
+                    className="w-full mt-1 bg-transparent border-0 text-[var(--text-primary)] text-sm focus:outline-none focus:ring-0"
+                    disabled={isLoading}
+                  >
+                    <option value="" className="bg-[var(--bg-vibrant-1)]">Not Started</option>
+                    {WIRING_STATUSES.map(status => (
+                      <option key={status} value={status} className="bg-[var(--bg-vibrant-1)]">{status}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center pt-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.componentReceived || false}
+                      onChange={(e) => setFormData(prev => ({ ...prev, componentReceived: e.target.checked }))}
+                      className="w-4 h-4 rounded border-[var(--glass-border)] bg-transparent text-[var(--accent)] focus:ring-0 focus:ring-offset-0"
+                      disabled={isLoading}
+                    />
+                    <span className="text-sm text-[var(--text-secondary)]">Parts Received</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {formData.subTeam === 'Programming' && (
+            <div className="glass-input rounded-xl p-4 space-y-3">
+              <label className="text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">Software Fields</label>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Subsystem</label>
+                  <select
+                    value={formData.softwareSubsystem || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, softwareSubsystem: (e.target.value || undefined) as SoftwareSubsystem }))}
+                    className="w-full mt-1 bg-transparent border-0 text-[var(--text-primary)] text-sm focus:outline-none focus:ring-0"
+                    disabled={isLoading}
+                  >
+                    <option value="" className="bg-[var(--bg-vibrant-1)]">Select...</option>
+                    {SOFTWARE_SUBSYSTEMS.map(sub => (
+                      <option key={sub} value={sub} className="bg-[var(--bg-vibrant-1)]">{sub}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center pt-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.testedOnRobot || false}
+                      onChange={(e) => setFormData(prev => ({ ...prev, testedOnRobot: e.target.checked }))}
+                      className="w-4 h-4 rounded border-[var(--glass-border)] bg-transparent text-[var(--accent)] focus:ring-0 focus:ring-offset-0"
+                      disabled={isLoading}
+                    />
+                    <span className="text-sm text-[var(--text-secondary)]">Tested on Robot</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="glass-input rounded-xl p-4">
+            <label className="flex items-center gap-2 cursor-pointer mb-3">
+              <input
+                type="checkbox"
+                checked={formData.isBlocked || false}
+                onChange={(e) => setFormData(prev => ({ ...prev, isBlocked: e.target.checked }))}
+                className="w-4 h-4 rounded border-[var(--glass-border)] bg-transparent text-[var(--danger)] focus:ring-0 focus:ring-offset-0"
+                disabled={isLoading}
+              />
+              <span className="text-xs text-[var(--danger)] uppercase tracking-wider font-semibold">Blocked</span>
+            </label>
+            {formData.isBlocked && (
+              <input
+                type="text"
+                value={formData.blockerReason || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, blockerReason: e.target.value || undefined }))}
+                placeholder="Reason for blocking..."
+                className="w-full bg-transparent border-0 text-[var(--text-primary)] placeholder-[var(--text-muted)] text-sm focus:outline-none focus:ring-0"
+                disabled={isLoading}
+              />
+            )}
+          </div>
+
+          <div className="glass-input rounded-xl p-4">
+            <label className="text-xs text-[var(--text-secondary)] uppercase tracking-wider font-semibold">Dependency (Task ID)</label>
+            <input
+              type="text"
+              value={formData.dependency || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, dependency: e.target.value || undefined }))}
+              placeholder="ID of task this depends on..."
+              className="w-full mt-2 bg-transparent border-0 text-[var(--text-primary)] placeholder-[var(--text-muted)] text-sm focus:outline-none focus:ring-0"
+              disabled={isLoading}
+            />
           </div>
 
           <div className="glass-input rounded-xl p-5">
