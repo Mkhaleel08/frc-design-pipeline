@@ -335,6 +335,7 @@ export function App() {
           onDelete={handleDeleteRequest}
           onUpdate={handleUpdateRequest}
           currentUser={user}
+          refreshRequests={fetchRequests}
         />
       )}
 

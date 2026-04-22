@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { DesignRequest, STAGES, STAGE_COLORS, PRIORITY_COLORS, SessionUser } from './types';
 
 interface DetailModalProps {
@@ -11,6 +11,7 @@ interface DetailModalProps {
   onDelete: (id: string) => Promise<void>;
   onUpdate: (id: string, data: Partial<DesignRequest>) => Promise<void>;
   currentUser: SessionUser | null;
+  refreshRequests: () => Promise<void>;
 }
 
 function formatTime(iso: string): string {
@@ -28,10 +29,11 @@ function getInitials(name: string): string {
   return name.split(' ').map(n => n[0]).join('').toUpperCase();
 }
 
-export function DetailModal({ request, onClose, onAdvance, onAddNote, onDelete, onUpdate, currentUser }: DetailModalProps) {
+export function DetailModal({ request, onClose, onAdvance, onAddNote, onDelete, onUpdate, currentUser, refreshRequests }: DetailModalProps) {
   const [newNote, setNewNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [editData, setEditData] = useState({
     title: request.title,
     description: request.description,
@@ -39,6 +41,7 @@ export function DetailModal({ request, onClose, onAdvance, onAddNote, onDelete, 
     assignee: request.assignee,
     dueDate: request.dueDate || '',
   });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setEditData({
@@ -49,6 +52,31 @@ export function DetailModal({ request, onClose, onAdvance, onAddNote, onDelete, 
       dueDate: request.dueDate || '',
     });
   }, [request]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || isUploading) return;
+    
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const res = await fetch(`/api/requests/${request.id}/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (res.ok) {
+        await refreshRequests();
+      }
+    } catch (error) {
+      console.error('Upload failed:', error);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const handleAddNote = async () => {
     if (!newNote.trim() || isSubmitting) return;
@@ -196,7 +224,39 @@ return (
             )}
           </div>
 
-          {/* Activity Log */}
+          {/* File Attachments */}
+          {request.blobUrl && (
+            <div className="bg-[#1F1F1F] rounded-xl p-4 border border-[#2A2A2A]">
+              <label className="text-xs text-[#555] uppercase tracking-wider mb-2 block">Attachments</label>
+              <div className="space-y-2">
+                {request.blobUrl.split(',').filter(Boolean).map((url, i) => (
+                  <a
+                    key={i}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 p-2 bg-[#171717] rounded-lg hover:bg-[#262626] transition-colors text-sm"
+                  >
+                    <svg className="w-4 h-4 text-[#10B981]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                    </svg>
+                    <span className="text-[#A1A1A1] truncate">{url.split('/').pop()}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="bg-[#1F1F1F] rounded-xl p-4 border border-[#2A2A2A]">
+            <label className="text-xs text-[#555] uppercase tracking-wider mb-2 block">Upload File</label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              onChange={handleFileUpload}
+              disabled={isUploading}
+              className="w-full text-sm text-[#737373] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#10B981] file:text-white file:cursor-pointer file:transition-colors file:hover:bg-[#059669] disabled:opacity-50"
+            />
+          </div>
           <div className="bg-[#1F1F1F] rounded-xl p-4 border border-[#2A2A2A]">
             <label className="text-xs text-[#555] uppercase tracking-wider mb-3 block">Activity</label>
             <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
