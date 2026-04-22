@@ -7,7 +7,7 @@ import { KanbanBoard } from './KanbanBoard';
 import { ActivityLog } from './ActivityLog';
 import { DetailModal } from './DetailModal';
 import { FormModal, FormData } from './FormModal';
-import { DesignRequest, SessionUser, STAGES } from './types';
+import { DesignRequest, SessionUser, STAGES, SUBTEAMS, SubTeam } from './types';
 
 function RegisterForm({ onRegister, isLoading, error }: { onRegister: (name: string, email: string, password: string, inviteCode: string) => void; isLoading: boolean; error: string | null }) {
   const [name, setName] = useState('');
@@ -227,6 +227,7 @@ export function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('All');
   const [assigneeFilter, setAssigneeFilter] = useState('All');
+  const [subTeamFilter, setSubTeamFilter] = useState('All');
 
   useEffect(() => {
     checkAuth();
@@ -453,13 +454,14 @@ export function App() {
     );
   }
 
-  const hasFilters = searchQuery || priorityFilter !== 'All' || assigneeFilter !== 'All';
+  const hasFilters = searchQuery || priorityFilter !== 'All' || assigneeFilter !== 'All' || subTeamFilter !== 'All';
 
   const filteredRequests = requests.filter(r => {
     const matchesSearch = r.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesPriority = priorityFilter === 'All' || r.priority === priorityFilter;
     const matchesAssignee = assigneeFilter === 'All' || r.assignee === assigneeFilter;
-    return matchesSearch && matchesPriority && matchesAssignee;
+    const matchesSubTeam = subTeamFilter === 'All' || r.subTeam === subTeamFilter;
+    return matchesSearch && matchesPriority && matchesAssignee && matchesSubTeam;
   });
 
   return (
@@ -509,9 +511,19 @@ export function App() {
               <option key={a} value={a}>{a}</option>
             ))}
           </select>
+          <select
+            value={subTeamFilter}
+            onChange={(e) => setSubTeamFilter(e.target.value)}
+            className="px-3 py-2 glass-input rounded-lg text-sm focus:outline-none transition-all text-[var(--text-primary)]"
+          >
+            <option value="All">All Teams</option>
+            {SUBTEAMS.map(team => (
+              <option key={team} value={team}>{team}</option>
+            ))}
+          </select>
           {hasFilters && (
             <button
-              onClick={() => { setSearchQuery(''); setPriorityFilter('All'); setAssigneeFilter('All'); }}
+              onClick={() => { setSearchQuery(''); setPriorityFilter('All'); setAssigneeFilter('All'); setSubTeamFilter('All'); }}
               className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] px-2 py-1 hover:bg-[var(--surface-3)] rounded-lg transition-all cursor-pointer"
             >
               Clear

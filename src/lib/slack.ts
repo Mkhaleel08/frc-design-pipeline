@@ -40,13 +40,14 @@ export async function sendSlackNotification(message: SlackMessage): Promise<void
 
 export async function notifyNewRequest(request: DesignRequest, userName: string): Promise<void> {
   const priorityEmoji = request.priority === 'High' ? ':red_circle:' : request.priority === 'Medium' ? ':large_yellow_circle:' : ':green_circle:';
+  const teamEmoji = request.subTeam ? `:tools:${request.subTeam}` : ':briefcase:';
   
   await sendSlackNotification({
     text: `New design request: ${request.title}`,
     blocks: [
       {
         type: 'header',
-        text: { type: 'plain_text', text: 'New Design Request', emoji: true }
+        text: { type: 'plain_text', text: ':page_facing_up: New Design Request', emoji: true }
       },
       {
         type: 'section',
@@ -54,18 +55,27 @@ export async function notifyNewRequest(request: DesignRequest, userName: string)
       },
       {
         type: 'section',
+        text: { type: 'mrkdwn', text: `>${request.description?.slice(0, 200) || 'No description'}` },
+        accessory: request.subTeam ? {
+          type: 'button',
+          text: { type: 'plain_text', text: request.subTeam, emoji: true },
+          url: `${APP_URL}/?subTeam=${request.subTeam}`
+        } : undefined
+      },
+      {
+        type: 'section',
         fields: [
           { type: 'mrkdwn', text: `${priorityEmoji} *Priority:*\n${request.priority}` },
+          { type: 'mrkdwn', text: `${teamEmoji} *Team:*\n${request.subTeam || 'Unassigned'}` },
           { type: 'mrkdwn', text: `:clipboard: *Stage:*\n${request.stage}` },
-          { type: 'mrkdwn', text: `:bust_in_silhouette: *Assignee:*\n${request.assignee || 'Unassigned'}` },
-          { type: 'mrkdwn', text: `:pencil2: *Created by:*\n${userName}` }
+          { type: 'mrkdwn', text: `:bust_in_silhouette: *Assignee:*\n${request.assignee || 'Unassigned'}` }
         ]
       },
       { type: 'divider' },
       {
         type: 'context',
         elements: [
-          { type: 'mrkdwn', text: `Created: ${new Date(request.createdAt).toLocaleString()}` }
+          { type: 'mrkdwn', text: `:pencil2: Created by *${userName}* at ${new Date(request.createdAt).toLocaleString()}` }
         ]
       },
       {

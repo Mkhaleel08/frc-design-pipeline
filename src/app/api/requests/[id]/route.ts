@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRequestById, updateRequest, deleteRequest } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-import { notifyRequestDeleted } from '@/lib/slack';
+import { notifyRequestDeleted, generateId } from '@/lib/slack';
 
 const VALID_PRIORITIES = ['High', 'Medium', 'Low'];
+const VALID_SUBTEAMS = ['CAD', 'Mechanical', 'Electrical', 'Business', 'Programming', 'Strategy'];
 
 export async function GET(
   request: NextRequest,
@@ -68,6 +69,35 @@ export async function PUT(
 
     if (body.attachments !== undefined) updates.attachments = String(body.attachments).slice(0, 5000);
     if (body.blobUrl !== undefined) updates.blobUrl = body.blobUrl || undefined;
+    
+    if (body.subTeam !== undefined) {
+      if (body.subTeam && !VALID_SUBTEAMS.includes(body.subTeam)) {
+        return NextResponse.json({ error: 'Invalid sub-team' }, { status: 400 });
+      }
+      updates.subTeam = body.subTeam || null;
+    }
+
+    if (body.saveAsVersion === true) {
+      const now = new Date().toISOString();
+      const snapshot = {
+        version: existing.version + 1,
+        title: existing.title,
+        description: existing.description,
+        notes: existing.notes,
+        priority: existing.priority,
+        assignee: existing.assignee,
+        subTeam: existing.subTeam,
+        savedAt: now,
+        savedBy: session.user.name,
+      };
+      updates.version = existing.version + 1;
+      updates.versionHistory = [...(existing.versionHistory || []), snapshot];
+      
+      if (Object.keys(updates).length === 2 && updates.version && updates.versionHistory) {
+        const updated = await updateRequest(id, { version: updates.version, versionHistory: updates.versionHistory });
+        return NextResponse.json({ request: updated });
+      }
+    }
 
     if (!isLead) {
       if (body.assignee !== undefined) {

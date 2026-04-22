@@ -1,6 +1,6 @@
 'use client';
 
-import { DesignRequest, STAGES, STAGE_COLORS } from './types';
+import { DesignRequest, STAGES, STAGE_COLORS, SUBTEAMS, SUBTEAM_COLORS, SubTeam } from './types';
 
 interface KanbanBoardProps {
   requests: DesignRequest[];
@@ -67,17 +67,33 @@ function KanbanCard({ request, onClick, idx }: { request: DesignRequest; onClick
       </div>
       
       <div className="flex items-center justify-between">
-        <span
-          className="text-[10px] px-2.5 py-1 rounded-lg font-medium"
-          style={{ 
-            backgroundColor: `${priorityColors[request.priority]}15`, 
-            color: priorityColors[request.priority] 
-          }}
-        >
-          {request.priority}
-        </span>
+        <div className="flex items-center gap-2">
+          <span
+            className="text-[10px] px-2.5 py-1 rounded-lg font-medium"
+            style={{ 
+              backgroundColor: `${priorityColors[request.priority]}15`, 
+              color: priorityColors[request.priority] 
+            }}
+          >
+            {request.priority}
+          </span>
+          {request.subTeam && (
+            <span
+              className="text-[10px] px-2 py-1 rounded-lg font-semibold"
+              style={{ 
+                backgroundColor: `${SUBTEAM_COLORS[request.subTeam as SubTeam]}20`, 
+                color: SUBTEAM_COLORS[request.subTeam as SubTeam] 
+              }}
+            >
+              {request.subTeam}
+            </span>
+          )}
+        </div>
         
         <div className="flex items-center gap-2">
+          <span className="text-[10px] text-[var(--text-muted)] font-medium">
+            V{request.version}
+          </span>
           {request.dueDate && !isOverdue && !isWarning && (
             <span className="text-[10px] text-[var(--text-muted)]">
               {new Date(request.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}

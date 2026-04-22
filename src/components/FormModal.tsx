@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { SubTeam, SUBTEAMS } from './types';
 
 interface FormModalProps {
   onSubmit: (data: FormData) => Promise<void>;
@@ -12,6 +13,7 @@ export interface FormData {
   title: string;
   description: string;
   priority: 'High' | 'Medium' | 'Low';
+  subTeam: SubTeam | null;
   assignee: string;
   attachments: string;
   notes: string;
@@ -23,6 +25,7 @@ export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
     title: '',
     description: '',
     priority: 'Medium',
+    subTeam: null,
     assignee: '',
     attachments: '',
     notes: '',
@@ -108,7 +111,7 @@ export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="glass-input rounded-xl p-4">
-              <label className="text-xs text-[var(--text-secondary)] uppercase tracking-wider font-semibold">Priority</label>
+              <label className="text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">Priority</label>
               <select
                 value={formData.priority}
                 onChange={handleChange('priority')}
@@ -121,15 +124,30 @@ export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
               </select>
             </div>
             <div className="glass-input rounded-xl p-4">
-              <label className="text-xs text-[var(--text-secondary)] uppercase tracking-wider font-semibold">Due Date</label>
-              <input
-                type="date"
-                value={formData.dueDate}
-                onChange={handleChange('dueDate')}
-                className="w-full mt-2 bg-transparent border-0 text-[var(--text-primary)] text-sm focus:outline-none focus:ring-0 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+              <label className="text-xs text-[var(--text-secondary)] uppercase tracking-wider font-semibold">Sub-Team</label>
+              <select
+                value={formData.subTeam || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, subTeam: e.target.value as SubTeam || null }))}
+                className="w-full mt-2 bg-transparent border-0 text-[var(--text-primary)] text-sm focus:outline-none focus:ring-0"
                 disabled={isLoading}
-              />
+              >
+                <option value="" className="bg-[var(--bg-vibrant-1)]">Select team...</option>
+                {SUBTEAMS.map(team => (
+                  <option key={team} value={team} className="bg-[var(--bg-vibrant-1)]">{team}</option>
+                ))}
+              </select>
             </div>
+          </div>
+
+          <div className="glass-input rounded-xl p-5">
+            <label className="text-xs text-[var(--text-secondary)] uppercase tracking-wider font-semibold">Due Date</label>
+            <input
+              type="date"
+              value={formData.dueDate}
+              onChange={handleChange('dueDate')}
+              className="w-full mt-2 bg-transparent border-0 text-[var(--text-primary)] text-sm focus:outline-none focus:ring-0 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+              disabled={isLoading}
+            />
           </div>
 
           <div className="glass-input rounded-xl p-5">

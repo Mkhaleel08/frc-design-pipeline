@@ -4,9 +4,11 @@ export type Stage = 'Submitted' | 'Assigned' | 'In Progress' | 'Review' | 'Fabri
 
 export type Priority = 'High' | 'Medium' | 'Low';
 
+export type SubTeam = 'CAD' | 'Mechanical' | 'Electrical' | 'Business' | 'Programming' | 'Strategy';
+
 export type UserRole = 'Designer' | 'Lead';
 
-export type ActivityType = 'created' | 'stage_change' | 'note_added';
+export type ActivityType = 'created' | 'stage_change' | 'note_added' | 'version_created';
 
 export interface Activity {
   id: string;
@@ -15,6 +17,18 @@ export interface Activity {
   timestamp: string;
   userId: string;
   userName?: string;
+}
+
+export interface VersionSnapshot {
+  version: number;
+  title: string;
+  description: string;
+  notes: string;
+  priority: Priority;
+  assignee: string;
+  subTeam: SubTeam | null;
+  savedAt: string;
+  savedBy: string;
 }
 
 export interface DesignRequest {
@@ -26,6 +40,9 @@ export interface DesignRequest {
   attachments: string;
   notes: string;
   stage: Stage;
+  subTeam: SubTeam | null;
+  version: number;
+  versionHistory: VersionSnapshot[];
   createdAt: string;
   updatedAt: string;
   activity: Activity[];
@@ -45,6 +62,8 @@ export interface SessionUser {
 
 export const STAGES: Stage[] = ['Submitted', 'Assigned', 'In Progress', 'Review', 'Fabrication', 'Complete'];
 
+export const SUBTEAMS: SubTeam[] = ['CAD', 'Mechanical', 'Electrical', 'Business', 'Programming', 'Strategy'];
+
 export const STAGE_COLORS: Record<Stage, string> = {
   'Submitted': '#6366F1',
   'Assigned': '#8B5CF6',
@@ -52,6 +71,15 @@ export const STAGE_COLORS: Record<Stage, string> = {
   'Review': '#3B82F6',
   'Fabrication': '#10B981',
   'Complete': '#22C55E'
+};
+
+export const SUBTEAM_COLORS: Record<SubTeam, string> = {
+  'CAD': '#F97316',
+  'Mechanical': '#EF4444',
+  'Electrical': '#3B82F6',
+  'Business': '#10B981',
+  'Programming': '#8B5CF6',
+  'Strategy': '#F59E0B'
 };
 
 export const PRIORITY_COLORS: Record<Priority, string> = {
