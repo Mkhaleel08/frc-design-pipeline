@@ -19,16 +19,17 @@ function LoginForm({ onLogin, isLoading, error }: { onLogin: (email: string, pas
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0D0D0D]">
-      <div className="text-center w-full max-w-xs">
-        <div className="mb-6">
-          <svg className="w-16 h-16 mx-auto text-[#22C55E]" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
-            <path d="M12 8l3 4h-6l3-4z"/>
-          </svg>
+    <div className="min-h-screen flex items-center justify-center bg-[#0C0C0C]">
+      <div className="text-center w-full max-w-sm px-6">
+        <div className="mb-8 animate-float">
+          <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center shadow-2xl shadow-[#10B981]/30">
+            <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M19.5 12c0-.23-.02-.45-.06-.68l1.86-1.41c.4-.3.51-.86.26-1.3l-1.87-3.23c-.25-.44-.79-.62-1.25-.42l-2.15.91c-.37-.26-.76-.49-1.17-.68l-.29-2.31c-.06-.5-.49-.88-1-.88h-3.73c-.51 0-.94.38-1 .88l-.29 2.31c-.41.19-.8.42-1.17.68l-2.15-.91c-.46-.2-1-.02-1.25.42L2.41 8.62c-.25.44-.14.99.26 1.3l1.86 1.41c-.04.23-.06.45-.06.68s.02.45.06.68l-1.86 1.41c-.4.3-.51.86-.26 1.3l1.87 3.23c.25.44.79.62 1.25.42l2.15-.91c.37.26.76.49 1.17.68l.29 2.31c.06.5.49.88 1 .88h3.73c.51 0 .94-.38 1-.88l.29-2.31c.41-.19.8-.42 1.17-.68l2.15.91c.46.2 1 .02 1.25-.42l1.87-3.23c.25-.44.14-.99-.26-1.3l-1.86-1.41c.04-.23.06-.45.06-.68z"/>
+            </svg>
+          </div>
         </div>
-        <h1 className="text-2xl font-semibold mb-2">FRC Design Pipeline</h1>
-        <p className="text-[#666] mb-6">Sign in to continue</p>
+        <h1 className="text-2xl font-semibold mb-2 text-white">FRC Design Pipeline</h1>
+        <p className="text-[#737373] mb-8">Sign in to continue</p>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
@@ -37,7 +38,7 @@ function LoginForm({ onLogin, isLoading, error }: { onLogin: (email: string, pas
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
             required
-            className="w-full px-4 py-3 bg-[#1A1A1A] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-[#22C55E]"
+            className="w-full px-4 py-3 bg-[#171717] border border-[#2A2A2A] rounded-xl text-sm focus:outline-none focus:border-[#10B981] focus:bg-[#1F1F1F] transition-all"
             disabled={isLoading}
           />
           <input
@@ -46,18 +47,18 @@ function LoginForm({ onLogin, isLoading, error }: { onLogin: (email: string, pas
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
             required
-            className="w-full px-4 py-3 bg-[#1A1A1A] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-[#22C55E]"
+            className="w-full px-4 py-3 bg-[#171717] border border-[#2A2A2A] rounded-xl text-sm focus:outline-none focus:border-[#10B981] focus:bg-[#1F1F1F] transition-all"
             disabled={isLoading}
           />
           
           {error && (
-            <p className="text-red-400 text-sm">{error}</p>
+            <p className="text-red-400 text-sm p-3 bg-red-500/10 rounded-lg border border-red-500/20">{error}</p>
           )}
           
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full px-4 py-3 bg-[#22C55E] hover:bg-[#16A34A] disabled:opacity-50 text-white font-medium rounded-lg transition-colors"
+            className="w-full px-4 py-3 bg-gradient-to-r from-[#10B981] to-[#059669] hover:from-[#059669] hover:to-[#047857] disabled:opacity-50 text-white font-medium rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#10B981]/20"
           >
             {isLoading ? 'Signing in...' : 'Sign In'}
           </button>
@@ -216,10 +217,30 @@ export function App() {
     }
   }
 
+  async function handleUpdateRequest(id: string, data: Partial<DesignRequest>) {
+    try {
+      const res = await fetch(`/api/requests/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setRequests(prev => prev.map(r => r.id === id ? updated.request : r));
+        setSelectedRequest(updated.request);
+      }
+    } catch (e) {
+      console.error('Failed to update request:', e);
+    }
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-[#666]">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-[#0C0C0C]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-2 border-[#10B981] border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-[#737373] text-sm">Loading...</div>
+        </div>
       </div>
     );
   }
@@ -243,18 +264,23 @@ export function App() {
       <StatsBar requests={requests} />
 
       {view === 'board' && (
-        <div className="flex items-center gap-4 px-6 py-3 bg-[#1A1A1A] border-b border-[#333]">
-          <input
-            type="text"
-            placeholder="Search requests..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="px-3 py-1.5 bg-[#242424] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-[#22C55E] w-48"
-          />
+        <div className="flex items-center gap-3 px-6 py-3 bg-[#171717] border-b border-[#2A2A2A]">
+          <div className="relative">
+            <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#555]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search requests..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 pr-3 py-2 bg-[#1F1F1F] border border-[#2A2A2A] rounded-lg text-sm focus:outline-none focus:border-[#10B981] w-48 transition-all"
+            />
+          </div>
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="px-3 py-1.5 bg-[#242424] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-[#22C55E]"
+            className="px-3 py-2 bg-[#1F1F1F] border border-[#2A2A2A] rounded-lg text-sm focus:outline-none focus:border-[#10B981] transition-all"
           >
             <option value="All">All Priorities</option>
             <option value="High">High</option>
@@ -264,7 +290,7 @@ export function App() {
           <select
             value={assigneeFilter}
             onChange={(e) => setAssigneeFilter(e.target.value)}
-            className="px-3 py-1.5 bg-[#242424] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-[#22C55E]"
+            className="px-3 py-2 bg-[#1F1F1F] border border-[#2A2A2A] rounded-lg text-sm focus:outline-none focus:border-[#10B981] transition-all"
           >
             <option value="All">All Assignees</option>
             {[...new Set(requests.map(r => r.assignee).filter(Boolean))].map(a => (
@@ -274,7 +300,7 @@ export function App() {
           {(searchQuery || priorityFilter !== 'All' || assigneeFilter !== 'All') && (
             <button
               onClick={() => { setSearchQuery(''); setPriorityFilter('All'); setAssigneeFilter('All'); }}
-              className="text-xs text-[#666] hover:text-white"
+              className="text-xs text-[#737373] hover:text-white px-2 py-1 hover:bg-[#262626] rounded-lg transition-all"
             >
               Clear filters
             </button>
@@ -283,7 +309,7 @@ export function App() {
       )}
 
       {error && (
-        <div className="mx-6 mt-4 px-4 py-2 bg-red-500/20 border border-red-500 rounded-lg text-red-400 text-sm">
+        <div className="mx-6 mt-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm animate-slideDown">
           {error}
         </div>
       )}
@@ -307,6 +333,8 @@ export function App() {
           onAdvance={handleAdvanceStage}
           onAddNote={handleAddNote}
           onDelete={handleDeleteRequest}
+          onUpdate={handleUpdateRequest}
+          currentUser={user}
         />
       )}
 
