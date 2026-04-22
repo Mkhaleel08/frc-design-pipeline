@@ -11,7 +11,16 @@ export async function GET() {
   }
 
   const requests = await getAllRequests();
-  return NextResponse.json({ requests });
+
+  if (session.user.role === 'Lead') {
+    return NextResponse.json({ requests });
+  }
+
+  const filteredRequests = requests.filter(
+    (req) => req.createdBy === session.user.id || req.assignee === session.user.name
+  );
+
+  return NextResponse.json({ requests: filteredRequests });
 }
 
 export async function POST(request: NextRequest) {
@@ -22,9 +31,9 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    
+
     const { title, description, priority, assignee, attachments, notes, dueDate } = body;
-    
+
     if (!title || typeof title !== 'string' || !title.trim()) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
     }

@@ -207,3 +207,8 @@ body {
   mask-composite: exclude;
   pointer-events: none;
 }
+
+.tabular-nums { font-variant-numeric: tabular-nums; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ring-red { box-shadow: 0 0 0 2px rgba(239,68,68,0.3); }
+.ring-amber { box-shadow: 0 0 0 2px rgba(245,158,11,0.3); }

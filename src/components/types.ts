@@ -38,6 +38,7 @@ export interface SessionUser {
   id: string;
   email: string;
   name: string;
+  real_name?: string;
   role: UserRole;
   slackMemberId?: string;
 }

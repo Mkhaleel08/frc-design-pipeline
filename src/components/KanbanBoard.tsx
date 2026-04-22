@@ -26,7 +26,7 @@ function getDueDateStatus(dueDate?: string): 'overdue' | 'warning' | 'normal' | 
   return null;
 }
 
-function KanbanCard({ request, onClick }: { request: DesignRequest; onClick: () => void }) {
+function KanbanCard({ request, onClick, idx }: { request: DesignRequest; onClick: () => void; idx: number }) {
   const priorityColors: Record<string, string> = {
     'High': '#EF4444',
     'Medium': '#F59E0B',
@@ -102,6 +102,18 @@ function KanbanCard({ request, onClick }: { request: DesignRequest; onClick: () 
   );
 }
 
+function SkeletonCard() {
+  return (
+    <div className="bg-[#1F1F1F] rounded-xl p-4 border border-[#2A2A2A] animate-pulse">
+      <div className="h-4 w-3/4 bg-[#2A2A2A] rounded mb-3"></div>
+      <div className="flex justify-between">
+        <div className="h-5 w-14 bg-[#2A2A2A] rounded"></div>
+        <div className="h-7 w-7 bg-[#2A2A2A] rounded-full"></div>
+      </div>
+    </div>
+  );
+}
+
 export function KanbanBoard({ requests, onCardClick, searchQuery, priorityFilter, assigneeFilter }: KanbanBoardProps) {
   let filteredRequests = [...requests];
   
@@ -163,6 +175,7 @@ export function KanbanBoard({ requests, onCardClick, searchQuery, priorityFilter
                     <KanbanCard
                       request={req}
                       onClick={() => onCardClick(req)}
+                      idx={idx}
                     />
                   </div>
                 ))

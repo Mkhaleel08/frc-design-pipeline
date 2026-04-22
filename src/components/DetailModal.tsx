@@ -34,6 +34,8 @@ export function DetailModal({ request, onClose, onAdvance, onAddNote, onDelete, 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [editData, setEditData] = useState({
     title: request.title,
     description: request.description,
@@ -57,23 +59,53 @@ export function DetailModal({ request, onClose, onAdvance, onAddNote, onDelete, 
     const file = e.target.files?.[0];
     if (!file || isUploading) return;
     
+    const allowedTypes = ['.stp', '.step', '.pdf', '.png', '.jpg', '.jpeg', '.dwg', '.dxf'];
+    const ext = '.' + file.name.split('.').pop()?.toLowerCase();
+    if (!allowedTypes.includes(ext)) {
+      setUploadError('Invalid file type. Allowed: .stp, .step, .pdf, .png, .jpg, .jpeg, .dwg, .dxf');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError('File too large. Max 10MB.');
+      return;
+    }
+    
     setIsUploading(true);
+    setUploadError(null);
+    setUploadProgress(0);
     try {
       const formData = new FormData();
       formData.append('file', file);
       
-      const res = await fetch(`/api/requests/${request.id}/upload`, {
-        method: 'POST',
-        body: formData,
+      const xhr = new XMLHttpRequest();
+      
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const progress = Math.round((event.loaded / event.total) * 100);
+          setUploadProgress(progress);
+        }
+      };
+      
+      await new Promise<void>((resolve, reject) => {
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve();
+          } else {
+            reject(new Error('Upload failed'));
+          }
+        };
+        xhr.onerror = () => reject(new Error('Upload failed'));
+        xhr.open('POST', `/api/requests/${request.id}/upload`);
+        xhr.send(formData);
       });
       
-      if (res.ok) {
-        await refreshRequests();
-      }
+      await refreshRequests();
     } catch (error) {
       console.error('Upload failed:', error);
+      setUploadError('Upload failed. Please try again.');
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -254,8 +286,26 @@ return (
               type="file"
               onChange={handleFileUpload}
               disabled={isUploading}
+              accept=".stp,.step,.pdf,.png,.jpg,.jpeg,.dwg,.dxf"
               className="w-full text-sm text-[#737373] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#10B981] file:text-white file:cursor-pointer file:transition-colors file:hover:bg-[#059669] disabled:opacity-50"
             />
+            {isUploading && (
+              <div className="mt-2">
+                <div className="flex justify-between text-xs text-[#737373] mb-1">
+                  <span>Uploading...</span>
+                  <span>{uploadProgress}%</span>
+                </div>
+                <div className="h-1.5 bg-[#262626] rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-[#10B981] transition-all duration-300"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+            {uploadError && (
+              <p className="text-[#EF4444] text-xs mt-2">{uploadError}</p>
+            )}
           </div>
           <div className="bg-[#1F1F1F] rounded-xl p-4 border border-[#2A2A2A]">
             <label className="text-xs text-[#555] uppercase tracking-wider mb-3 block">Activity</label>

@@ -28,16 +28,29 @@ export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
     notes: '',
     dueDate: '',
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (field: keyof FormData) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const validate = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.title.trim()) {
+      newErrors.title = 'Title is required';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title.trim() || isLoading) return;
+    if (!validate() || isLoading) return;
     await onSubmit(formData);
   };
 
@@ -56,16 +69,21 @@ export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
 
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
           <div>
-            <label className="text-xs text-[#555] uppercase tracking-wider font-medium">Title *</label>
+            <label className="text-xs text-[#555] uppercase tracking-wider font-medium">Title <span className="text-[#EF4444]">*</span></label>
             <input
               type="text"
               value={formData.title}
               onChange={handleChange('title')}
               required
               placeholder="Design request title"
-              className="w-full mt-1.5 bg-[#1F1F1F] border border-[#2A2A2A] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#10B981] focus:bg-[#262626] transition-all"
+              className={`w-full mt-1.5 bg-[#1F1F1F] border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#10B981] focus:bg-[#262626] transition-all ${
+                errors.title ? 'border-[#EF4444]' : 'border-[#2A2A2A]'
+              }`}
               disabled={isLoading}
             />
+            {errors.title && (
+              <p className="text-[#EF4444] text-xs mt-1">{errors.title}</p>
+            )}
           </div>
 
           <div>
@@ -119,15 +137,16 @@ export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
           </div>
 
           <div>
-            <label className="text-xs text-[#555] uppercase tracking-wider font-medium">File/Link Attachments</label>
-            <textarea
+            <label className="text-xs text-[#555] uppercase tracking-wider font-medium">Attachment URL</label>
+            <input
+              type="url"
               value={formData.attachments}
               onChange={handleChange('attachments')}
-              placeholder="Paste file URLs or links (one per line)..."
-              rows={3}
-              className="w-full mt-1.5 bg-[#1F1F1F] border border-[#2A2A2A] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#10B981] focus:bg-[#262626] transition-all resize-none"
+              placeholder="Paste a link to your CAD file, PDF, or image"
+              className="w-full mt-1.5 bg-[#1F1F1F] border border-[#2A2A2A] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#10B981] focus:bg-[#262626] transition-all"
               disabled={isLoading}
             />
+            <p className="text-[10px] text-[#555] mt-1">Paste a link to your CAD file, PDF, or image</p>
           </div>
 
           <div>
@@ -154,9 +173,16 @@ export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
             <button
               type="submit"
               disabled={!formData.title.trim() || isLoading}
-              className="flex-1 px-4 py-2.5 bg-[#10B981] hover:bg-[#059669] disabled:opacity-50 text-white font-medium rounded-lg transition-all hover:scale-[1.01] active:scale-[0.99]"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#10B981] hover:bg-[#059669] disabled:opacity-50 text-white font-medium rounded-lg transition-all hover:scale-[1.01] active:scale-[0.99]"
             >
-              {isLoading ? 'Creating...' : 'Create Request'}
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <span>Creating...</span>
+                </>
+              ) : (
+                'Create Request'
+              )}
             </button>
           </div>
         </form>

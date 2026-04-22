@@ -7,7 +7,7 @@ import { KanbanBoard } from './KanbanBoard';
 import { ActivityLog } from './ActivityLog';
 import { DetailModal } from './DetailModal';
 import { FormModal, FormData } from './FormModal';
-import { DesignRequest, SessionUser } from './types';
+import { DesignRequest, SessionUser, STAGES } from './types';
 
 function LoginForm({ onLogin, isLoading, error }: { onLogin: (email: string, password: string) => void; isLoading: boolean; error: string | null }) {
   const [email, setEmail] = useState('');
@@ -21,9 +21,9 @@ function LoginForm({ onLogin, isLoading, error }: { onLogin: (email: string, pas
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0C0C0C]">
       <div className="text-center w-full max-w-sm px-6">
-        <div className="mb-8 animate-float">
-          <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center shadow-2xl shadow-[#10B981]/30">
-            <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+        <div className="mb-10 animate-float">
+          <div className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center shadow-2xl shadow-[#10B981]/30">
+            <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
               <path d="M19.5 12c0-.23-.02-.45-.06-.68l1.86-1.41c.4-.3.51-.86.26-1.3l-1.87-3.23c-.25-.44-.79-.62-1.25-.42l-2.15.91c-.37-.26-.76-.49-1.17-.68l-.29-2.31c-.06-.5-.49-.88-1-.88h-3.73c-.51 0-.94.38-1 .88l-.29 2.31c-.41.19-.8.42-1.17.68l-2.15-.91c-.46-.2-1-.02-1.25.42L2.41 8.62c-.25.44-.14.99.26 1.3l1.86 1.41c-.04.23-.06.45-.06.68s.02.45.06.68l-1.86 1.41c-.4.3-.51.86-.26 1.3l1.87 3.23c.25.44.79.62 1.25.42l2.15-.91c.37.26.76.49 1.17.68l.29 2.31c.06.5.49.88 1 .88h3.73c.51 0 .94-.38 1-.88l.29-2.31c.41-.19.8-.42 1.17-.68l2.15.91c.46.2 1 .02 1.25-.42l1.87-3.23c.25-.44.14-.99-.26-1.3l-1.86-1.41c.04-.23.06-.45.06-.68z"/>
             </svg>
           </div>
@@ -52,15 +52,24 @@ function LoginForm({ onLogin, isLoading, error }: { onLogin: (email: string, pas
           />
           
           {error && (
-            <p className="text-red-400 text-sm p-3 bg-red-500/10 rounded-lg border border-red-500/20">{error}</p>
+            <div className="p-3 bg-[#EF4444]/10 rounded-lg border border-[#EF4444]/20">
+              <p className="text-[#EF4444] text-sm">{error}</p>
+            </div>
           )}
           
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full px-4 py-3 bg-gradient-to-r from-[#10B981] to-[#059669] hover:from-[#059669] hover:to-[#047857] disabled:opacity-50 text-white font-medium rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#10B981]/20"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-[#10B981] to-[#059669] hover:from-[#059669] hover:to-[#047857] disabled:opacity-50 text-white font-medium rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#10B981]/20"
           >
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            {isLoading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <span>Signing in...</span>
+              </>
+            ) : (
+              'Sign In'
+            )}
           </button>
         </form>
       </div>
@@ -68,9 +77,60 @@ function LoginForm({ onLogin, isLoading, error }: { onLogin: (email: string, pas
   );
 }
 
+function SkeletonStatsBar() {
+  return (
+    <div className="bg-[#171717] border-b border-[#2A2A2A] h-14 flex items-center px-6 gap-3">
+      {['Submitted', 'Assigned', 'In Progress', 'Review', 'Fabrication', 'Complete'].map((stage) => (
+        <div key={stage} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1F1F1F] border border-[#2A2A2A] animate-pulse">
+          <div className="w-2 h-2 rounded-full bg-[#404040]"></div>
+          <span className="text-xs text-[#404040] font-medium w-12 h-4 bg-[#2A2A2A] rounded"></span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SkeletonFilters() {
+  return (
+    <div className="flex items-center gap-3 px-6 py-3 bg-[#171717] border-b border-[#2A2A2A]">
+      <div className="w-48 h-9 bg-[#1F1F1F] rounded-lg animate-pulse"></div>
+      <div className="w-32 h-9 bg-[#1F1F1F] rounded-lg animate-pulse"></div>
+      <div className="w-32 h-9 bg-[#1F1F1F] rounded-lg animate-pulse"></div>
+    </div>
+  );
+}
+
+function SkeletonKanbanBoard() {
+  return (
+    <div className="flex-1 flex gap-4 p-6 overflow-x-auto">
+      {['Submitted', 'Assigned', 'In Progress', 'Review', 'Fabrication', 'Complete'].map((stage) => (
+        <div key={stage} className="flex-shrink-0 w-80 flex flex-col">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-t-xl border-b-2 border-[#2A2A2A] bg-[#171717]">
+            <div className="w-2 h-2 rounded-full bg-[#404040] animate-pulse"></div>
+            <div className="h-3 w-20 bg-[#2A2A2A] rounded animate-pulse"></div>
+            <div className="ml-auto h-5 w-8 bg-[#2A2A2A] rounded animate-pulse"></div>
+          </div>
+          <div className="flex-1 bg-[#171717] rounded-b-xl p-3 flex flex-col gap-3 min-h-[300px] border-x border-b border-[#2A2A2A]">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-[#1F1F1F] rounded-xl p-4 border border-[#2A2A2A] animate-pulse">
+                <div className="h-4 w-3/4 bg-[#2A2A2A] rounded mb-3"></div>
+                <div className="flex justify-between">
+                  <div className="h-5 w-14 bg-[#2A2A2A] rounded"></div>
+                  <div className="h-7 w-7 bg-[#2A2A2A] rounded-full"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function App() {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [requestsLoading, setRequestsLoading] = useState(false);
   const [view, setView] = useState<'board' | 'activity'>('board');
   const [requests, setRequests] = useState<DesignRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<DesignRequest | null>(null);
@@ -103,6 +163,7 @@ export function App() {
   }
 
   async function fetchRequests() {
+    setRequestsLoading(true);
     try {
       const res = await fetch('/api/requests');
       if (res.ok) {
@@ -111,6 +172,8 @@ export function App() {
       }
     } catch (e) {
       console.error('Failed to fetch requests:', e);
+    } finally {
+      setRequestsLoading(false);
     }
   }
 
@@ -176,19 +239,65 @@ export function App() {
   }
 
   async function handleAdvanceStage(id: string) {
+    const currentRequest = requests.find(r => r.id === id);
+    if (!currentRequest || !user) return;
+    
+    const currentStageIndex = STAGES.indexOf(currentRequest.stage);
+    const nextStage = currentStageIndex < STAGES.length - 1 ? STAGES[currentStageIndex + 1] : null;
+    if (!nextStage) return;
+    
+    const tempId = 'temp-' + Date.now();
+    const optimisticActivity = {
+      id: tempId,
+      type: 'stage_change' as const,
+      message: `Moved to ${nextStage}`,
+      timestamp: new Date().toISOString(),
+      userId: user.id,
+      userName: user.name
+    };
+    
+    setRequests(prev => prev.map(r => r.id === id ? { ...r, stage: nextStage, activity: [...r.activity, optimisticActivity] } : r));
+    if (selectedRequest?.id === id) {
+      setSelectedRequest(prev => prev ? { ...prev, stage: nextStage, activity: [...prev.activity, optimisticActivity] } : null);
+    }
+    
     try {
       const res = await fetch(`/api/requests/${id}/advance`, { method: 'POST' });
       if (res.ok) {
         const data = await res.json();
         setRequests(prev => prev.map(r => r.id === id ? data.request : r));
-        setSelectedRequest(data.request);
+        setSelectedRequest(prev => prev?.id === id ? data.request : prev);
+      } else {
+        throw new Error('Failed to advance');
       }
     } catch (e) {
+      setRequests(prev => prev.map(r => r.id === id ? currentRequest : r));
+      if (selectedRequest?.id === id) {
+        setSelectedRequest(currentRequest);
+      }
       console.error('Failed to advance stage:', e);
     }
   }
 
   async function handleAddNote(id: string, note: string) {
+    const currentRequest = requests.find(r => r.id === id);
+    if (!currentRequest || !user) return;
+    
+    const tempId = 'temp-' + Date.now();
+    const optimisticNote = { 
+      id: tempId, 
+      type: 'note_added' as const, 
+      message: note, 
+      timestamp: new Date().toISOString(), 
+      userId: user.id, 
+      userName: user.name 
+    };
+    
+    setRequests(prev => prev.map(r => r.id === id ? { ...r, activity: [...r.activity, optimisticNote] } : r));
+    if (selectedRequest?.id === id) {
+      setSelectedRequest(prev => prev ? { ...prev, activity: [...prev.activity, optimisticNote] } : null);
+    }
+    
     try {
       const res = await fetch(`/api/requests/${id}/note`, {
         method: 'POST',
@@ -198,9 +307,15 @@ export function App() {
       if (res.ok) {
         const data = await res.json();
         setRequests(prev => prev.map(r => r.id === id ? data.request : r));
-        setSelectedRequest(data.request);
+        setSelectedRequest(prev => prev?.id === id ? data.request : prev);
+      } else {
+        throw new Error('Failed to add note');
       }
     } catch (e) {
+      setRequests(prev => prev.map(r => r.id === id ? currentRequest : r));
+      if (selectedRequest?.id === id) {
+        setSelectedRequest(currentRequest);
+      }
       console.error('Failed to add note:', e);
     }
   }
@@ -251,6 +366,15 @@ export function App() {
     );
   }
 
+  const hasFilters = searchQuery || priorityFilter !== 'All' || assigneeFilter !== 'All';
+
+  const filteredRequests = requests.filter(r => {
+    const matchesSearch = r.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesPriority = priorityFilter === 'All' || r.priority === priorityFilter;
+    const matchesAssignee = assigneeFilter === 'All' || r.assignee === assigneeFilter;
+    return matchesSearch && matchesPriority && matchesAssignee;
+  });
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header
@@ -259,6 +383,7 @@ export function App() {
         onViewChange={setView}
         onNewRequest={() => setShowForm(true)}
         onLogout={handleLogout}
+        requests={requests}
         isLoading={isSubmitting}
       />
       <StatsBar requests={requests} />
@@ -297,31 +422,32 @@ export function App() {
               <option key={a} value={a}>{a}</option>
             ))}
           </select>
-          {(searchQuery || priorityFilter !== 'All' || assigneeFilter !== 'All') && (
+          {hasFilters && (
             <button
               onClick={() => { setSearchQuery(''); setPriorityFilter('All'); setAssigneeFilter('All'); }}
               className="text-xs text-[#737373] hover:text-white px-2 py-1 hover:bg-[#262626] rounded-lg transition-all"
             >
-              Clear filters
+              Clear
             </button>
           )}
         </div>
       )}
 
       {error && (
-        <div className="mx-6 mt-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm animate-slideDown">
+        <div className="mx-6 mt-4 px-4 py-3 bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-lg text-[#EF4444] text-sm animate-slideDown">
           {error}
         </div>
       )}
 
       {view === 'board' ? (
-        <KanbanBoard
-          requests={requests}
-          onCardClick={setSelectedRequest}
-          searchQuery={searchQuery}
-          priorityFilter={priorityFilter}
-          assigneeFilter={assigneeFilter}
-        />
+        requestsLoading ? (
+          <SkeletonKanbanBoard />
+        ) : (
+          <KanbanBoard
+            requests={filteredRequests}
+            onCardClick={setSelectedRequest}
+          />
+        )
       ) : (
         <ActivityLog requests={requests} />
       )}
