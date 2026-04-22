@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { SubTeam, SUBTEAMS } from './types';
+import { SubTeam, SUBTEAMS, Label, LABELS, LABEL_COLORS } from './types';
 
 interface FormModalProps {
   onSubmit: (data: FormData) => Promise<void>;
@@ -14,6 +14,7 @@ export interface FormData {
   description: string;
   priority: 'High' | 'Medium' | 'Low';
   subTeam: SubTeam | null;
+  labels: Label[];
   assignee: string;
   attachments: string;
   notes: string;
@@ -26,12 +27,22 @@ export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
     description: '',
     priority: 'Medium',
     subTeam: null,
+    labels: [],
     assignee: '',
     attachments: '',
     notes: '',
     dueDate: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const toggleLabel = (label: Label) => {
+    setFormData(prev => ({
+      ...prev,
+      labels: prev.labels.includes(label)
+        ? prev.labels.filter(l => l !== label)
+        : [...prev.labels, label]
+    }));
+  };
 
   const handleChange = (field: keyof FormData) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -136,6 +147,28 @@ export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
                   <option key={team} value={team} className="bg-[var(--bg-vibrant-1)]">{team}</option>
                 ))}
               </select>
+            </div>
+          </div>
+
+          <div className="glass-input rounded-xl p-4">
+            <label className="text-xs text-[var(--text-secondary)] uppercase tracking-wider font-semibold mb-3 block">Labels</label>
+            <div className="flex flex-wrap gap-2">
+              {LABELS.map(label => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => toggleLabel(label)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer`}
+                  style={{
+                    backgroundColor: formData.labels.includes(label)
+                      ? LABEL_COLORS[label]
+                      : `${LABEL_COLORS[label]}20`,
+                    color: formData.labels.includes(label) ? 'white' : LABEL_COLORS[label]
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
 

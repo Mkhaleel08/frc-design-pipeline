@@ -7,7 +7,9 @@ import { KanbanBoard } from './KanbanBoard';
 import { ActivityLog } from './ActivityLog';
 import { DetailModal } from './DetailModal';
 import { FormModal, FormData } from './FormModal';
-import { DesignRequest, SessionUser, STAGES, SUBTEAMS, SubTeam } from './types';
+import { CalendarView } from './CalendarView';
+import { WorkloadView } from './WorkloadView';
+import { DesignRequest, SessionUser, STAGES, SUBTEAMS, SubTeam, LABELS, Label } from './types';
 
 function RegisterForm({ onRegister, isLoading, error }: { onRegister: (name: string, email: string, password: string, inviteCode: string) => void; isLoading: boolean; error: string | null }) {
   const [name, setName] = useState('');
@@ -218,7 +220,7 @@ export function App() {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [requestsLoading, setRequestsLoading] = useState(false);
-  const [view, setView] = useState<'board' | 'activity'>('board');
+  const [view, setView] = useState<'board' | 'calendar' | 'workload' | 'activity'>('board');
   const [requests, setRequests] = useState<DesignRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<DesignRequest | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -228,6 +230,7 @@ export function App() {
   const [priorityFilter, setPriorityFilter] = useState('All');
   const [assigneeFilter, setAssigneeFilter] = useState('All');
   const [subTeamFilter, setSubTeamFilter] = useState('All');
+  const [labelFilter, setLabelFilter] = useState('All');
 
   useEffect(() => {
     checkAuth();
@@ -454,14 +457,15 @@ export function App() {
     );
   }
 
-  const hasFilters = searchQuery || priorityFilter !== 'All' || assigneeFilter !== 'All' || subTeamFilter !== 'All';
+  const hasFilters = searchQuery || priorityFilter !== 'All' || assigneeFilter !== 'All' || subTeamFilter !== 'All' || labelFilter !== 'All';
 
   const filteredRequests = requests.filter(r => {
     const matchesSearch = r.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesPriority = priorityFilter === 'All' || r.priority === priorityFilter;
     const matchesAssignee = assigneeFilter === 'All' || r.assignee === assigneeFilter;
     const matchesSubTeam = subTeamFilter === 'All' || r.subTeam === subTeamFilter;
-    return matchesSearch && matchesPriority && matchesAssignee && matchesSubTeam;
+    const matchesLabel = labelFilter === 'All' || (r.labels && r.labels.includes(labelFilter as Label));
+    return matchesSearch && matchesPriority && matchesAssignee && matchesSubTeam && matchesLabel;
   });
 
   return (
@@ -521,9 +525,19 @@ export function App() {
               <option key={team} value={team}>{team}</option>
             ))}
           </select>
+          <select
+            value={labelFilter}
+            onChange={(e) => setLabelFilter(e.target.value)}
+            className="px-3 py-2 glass-input rounded-lg text-sm focus:outline-none transition-all text-[var(--text-primary)]"
+          >
+            <option value="All">All Labels</option>
+            {LABELS.map(label => (
+              <option key={label} value={label}>{label}</option>
+            ))}
+          </select>
           {hasFilters && (
             <button
-              onClick={() => { setSearchQuery(''); setPriorityFilter('All'); setAssigneeFilter('All'); setSubTeamFilter('All'); }}
+              onClick={() => { setSearchQuery(''); setPriorityFilter('All'); setAssigneeFilter('All'); setSubTeamFilter('All'); setLabelFilter('All'); }}
               className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] px-2 py-1 hover:bg-[var(--surface-3)] rounded-lg transition-all cursor-pointer"
             >
               Clear
@@ -550,6 +564,16 @@ export function App() {
             onCardClick={setSelectedRequest}
           />
         )
+      ) : view === 'calendar' ? (
+        <CalendarView
+          requests={filteredRequests}
+          onRequestClick={setSelectedRequest}
+        />
+      ) : view === 'workload' ? (
+        <WorkloadView
+          requests={requests}
+          onRequestClick={setSelectedRequest}
+        />
       ) : (
         <ActivityLog requests={requests} />
       )}

@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    const { title, description, priority, subTeam, assignee, attachments, notes, dueDate } = body;
+    const { title, description, priority, subTeam, labels, assignee, attachments, notes, dueDate } = body;
 
     if (!title || typeof title !== 'string' || !title.trim()) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
       description: String(description || '').slice(0, 2000),
       priority: priority || 'Medium',
       subTeam: subTeam || null,
+      labels: labels || [],
       assignee: assignee || session.user.name,
       attachments: String(attachments || '').slice(0, 5000),
       notes: String(notes || '').slice(0, 2000),

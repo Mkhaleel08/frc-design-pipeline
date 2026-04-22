@@ -4,8 +4,8 @@ import { SessionUser, DesignRequest } from './types';
 
 interface HeaderProps {
   user: SessionUser | null;
-  view: 'board' | 'activity';
-  onViewChange: (view: 'board' | 'activity') => void;
+  view: 'board' | 'calendar' | 'workload' | 'activity';
+  onViewChange: (view: 'board' | 'calendar' | 'workload' | 'activity') => void;
   onNewRequest: () => void;
   onLogout: () => void;
   requests: DesignRequest[];
@@ -38,6 +38,26 @@ export function Header({ user, view, onViewChange, onNewRequest, onLogout, reque
             }`}
           >
             Board
+          </button>
+          <button
+            onClick={() => onViewChange('calendar')}
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
+              view === 'calendar'
+                ? 'bg-[var(--accent)] text-white shadow-lg'
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)]'
+            }`}
+          >
+            Calendar
+          </button>
+          <button
+            onClick={() => onViewChange('workload')}
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
+              view === 'workload'
+                ? 'bg-[var(--accent)] text-white shadow-lg'
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)]'
+            }`}
+          >
+            Workload
           </button>
           <button
             onClick={() => onViewChange('activity')}

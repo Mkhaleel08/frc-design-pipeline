@@ -6,6 +6,8 @@ export type Priority = 'High' | 'Medium' | 'Low';
 
 export type SubTeam = 'CAD' | 'Mechanical' | 'Electrical' | 'Business' | 'Programming' | 'Strategy';
 
+export type Label = 'Urgent' | 'Needs Review' | 'Approved' | 'Blocked' | 'Ready' | 'In Progress';
+
 export type UserRole = 'Designer' | 'Lead';
 
 export type ActivityType = 'created' | 'stage_change' | 'note_added' | 'version_created';
@@ -41,6 +43,7 @@ export interface DesignRequest {
   notes: string;
   stage: Stage;
   subTeam: SubTeam | null;
+  labels: Label[];
   version: number;
   versionHistory: VersionSnapshot[];
   createdAt: string;
@@ -60,9 +63,18 @@ export interface SessionUser {
   slackMemberId?: string;
 }
 
+export interface WorkloadEntry {
+  name: string;
+  total: number;
+  byStage: Record<Stage, number>;
+  subTeamBreakdown: Record<string, number>;
+}
+
 export const STAGES: Stage[] = ['Submitted', 'Assigned', 'In Progress', 'Review', 'Fabrication', 'Complete'];
 
 export const SUBTEAMS: SubTeam[] = ['CAD', 'Mechanical', 'Electrical', 'Business', 'Programming', 'Strategy'];
+
+export const LABELS: Label[] = ['Urgent', 'Needs Review', 'Approved', 'Blocked', 'Ready', 'In Progress'];
 
 export const STAGE_COLORS: Record<Stage, string> = {
   'Submitted': '#6366F1',
@@ -80,6 +92,15 @@ export const SUBTEAM_COLORS: Record<SubTeam, string> = {
   'Business': '#10B981',
   'Programming': '#8B5CF6',
   'Strategy': '#F59E0B'
+};
+
+export const LABEL_COLORS: Record<Label, string> = {
+  'Urgent': '#EF4444',
+  'Needs Review': '#F59E0B',
+  'Approved': '#10B981',
+  'Blocked': '#DC2626',
+  'Ready': '#3B82F6',
+  'In Progress': '#8B5CF6'
 };
 
 export const PRIORITY_COLORS: Record<Priority, string> = {

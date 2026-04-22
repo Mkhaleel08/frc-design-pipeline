@@ -1,6 +1,6 @@
 'use client';
 
-import { DesignRequest, STAGES, STAGE_COLORS, SUBTEAMS, SUBTEAM_COLORS, SubTeam } from './types';
+import { DesignRequest, STAGES, STAGE_COLORS, SUBTEAMS, SUBTEAM_COLORS, SubTeam, LABELS, LABEL_COLORS, Label } from './types';
 
 interface KanbanBoardProps {
   requests: DesignRequest[];
@@ -90,7 +90,27 @@ function KanbanCard({ request, onClick, idx }: { request: DesignRequest; onClick
           )}
         </div>
         
-        <div className="flex items-center gap-2">
+        {(request.labels && request.labels.length > 0) && (
+          <div className="flex items-center gap-1 flex-wrap mt-2">
+            {request.labels.slice(0, 3).map(label => (
+              <span
+                key={label}
+                className="text-[9px] px-1.5 py-0.5 rounded font-medium"
+                style={{ 
+                  backgroundColor: `${LABEL_COLORS[label as Label]}25`, 
+                  color: LABEL_COLORS[label as Label] 
+                }}
+              >
+                {label === 'Needs Review' ? 'Review' : label === 'In Progress' ? 'Active' : label}
+              </span>
+            ))}
+            {request.labels.length > 3 && (
+              <span className="text-[9px] text-[var(--text-muted)]">+{request.labels.length - 3}</span>
+            )}
+          </div>
+        )}
+
+        <div className="flex items-center gap-2 mt-2">
           <span className="text-[10px] text-[var(--text-muted)] font-medium">
             V{request.version}
           </span>
