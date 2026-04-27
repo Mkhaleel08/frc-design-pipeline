@@ -56,13 +56,13 @@ function RegisterForm({ onRegister, isLoading, error }: { onRegister: (name: str
         <div className="text-center mb-8">
           <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center shadow-2xl accent-glow">
             <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M19.5 12c0-.23-.02-.45-.06-.68l1.86-1.41c.4-.3.51-.86.26-1.3l-1.87-3.23c-.25-.44-.79-.62-1.25-.42l-2.15.91c-.37-.26-.76-.49-1.17-.68l-.29-2.31c-.06-.5-.49-.88-1-.88h-3.73c-.51 0-.94.38-1 .88l-.29 2.31c-.41.19-.8.42-1.17.68l-2.15-.91c-.46-.2-1-.02-1.25.42L2.41 8.62c-.25.44-.14.99.26 1.3l1.86 1.41c-.04.23-.06.45-.06.68s.02.45.06.68l-1.86 1.41c-.4.3-.51.86-.26 1.3l1.87 3.23c.25.44.79.62 1.25.42l2.15-.91c.37.26.76.49 1.17.68l.29 2.31c.06.5.49.88 1 .88h3.73c.51 0 .94-.38 1-.88l.29-2.31c.41-.19.8-.42 1.17-.68l2.15.91c.46.2 1 .02 1.25-.42l1.87-3.23c.25-.44.14-.99-.26-1.3l-1.86-1.41c.04-.23.06-.45.06-.68z"/>
+              <path d="M19.5 12c0-.23-.02-.45-.06-.68l1.86-1.41c.4-.3.51-.86.26-1.3l-1.87-3.23c-.25-.44-.79-.62-1.25-.42l-2.15.91c-.37-.26-.76-.49-1.17-.68l-.29-2.31c-.06-.5-.49-.88-1-.88h-3.73c-.51 0-.94.38-1 .88l-.29 2.31c-.41.19-.8.42-1.17.68l-2.15-.91c-.46-.2-1-.02-1.25.42L2.41 8.62c-.25.44-.14.99.26 1.3l1.86 1.41c-.04.23-.06.45-.06.68s.02.45.06.68l-1.86 1.41c-.4.3-.51.86-.26 1.3l1.87 3.23c.25.44.79.62 1.25.42l2.15-.91c.37.26.76.49 1.17.68l.29 2.31c.06.5.49.88 1 .88h3.73c.51 0 .94-.38 1-.88l.29-2.31c.41-.19.8-.42 1.17-.68l2.15.91c.46.2 1 .02 1.25-.42l1.87-3.23c.25-.44.14-.99-.26-1.3l-1.86-1.41c.04-.23.06-.45.06-.68z" />
             </svg>
           </div>
         </div>
         <h1 className="text-2xl font-semibold mb-2 text-center text-[var(--text-primary)]">FRC Design Pipeline</h1>
         <p className="text-[var(--text-muted)] mb-6 text-center">Create your account to get started</p>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <input
@@ -128,7 +128,7 @@ function RegisterForm({ onRegister, isLoading, error }: { onRegister: (name: str
               disabled={isLoading}
             />
           </div>
-          
+
           {error && (
             <div className="p-3 bg-[var(--danger-glow)] rounded-xl border border-[var(--danger)]/30">
               <p className="text-[var(--danger)] text-sm flex items-center gap-2">
@@ -139,7 +139,7 @@ function RegisterForm({ onRegister, isLoading, error }: { onRegister: (name: str
               </p>
             </div>
           )}
-          
+
           <button
             type="submit"
             disabled={isLoading}
@@ -342,11 +342,11 @@ export function App() {
   async function handleAdvanceStage(id: string) {
     const currentRequest = requests.find(r => r.id === id);
     if (!currentRequest || !user) return;
-    
+
     const currentStageIndex = STAGES.indexOf(currentRequest.stage);
     const nextStage = currentStageIndex < STAGES.length - 1 ? STAGES[currentStageIndex + 1] : null;
     if (!nextStage) return;
-    
+
     const tempId = 'temp-' + Date.now();
     const optimisticActivity = {
       id: tempId,
@@ -356,12 +356,12 @@ export function App() {
       userId: user.id,
       userName: user.name
     };
-    
+
     setRequests(prev => prev.map(r => r.id === id ? { ...r, stage: nextStage, activity: [...r.activity, optimisticActivity] } : r));
     if (selectedRequest?.id === id) {
       setSelectedRequest(prev => prev ? { ...prev, stage: nextStage, activity: [...prev.activity, optimisticActivity] } : null);
     }
-    
+
     try {
       const res = await fetch(`/api/requests/${id}/advance`, { method: 'POST' });
       if (res.ok) {
@@ -383,22 +383,22 @@ export function App() {
   async function handleAddNote(id: string, note: string) {
     const currentRequest = requests.find(r => r.id === id);
     if (!currentRequest || !user) return;
-    
+
     const tempId = 'temp-' + Date.now();
-    const optimisticNote = { 
-      id: tempId, 
-      type: 'note_added' as const, 
-      message: note, 
-      timestamp: new Date().toISOString(), 
-      userId: user.id, 
-      userName: user.name 
+    const optimisticNote = {
+      id: tempId,
+      type: 'note_added' as const,
+      message: note,
+      timestamp: new Date().toISOString(),
+      userId: user.id,
+      userName: user.name
     };
-    
+
     setRequests(prev => prev.map(r => r.id === id ? { ...r, activity: [...r.activity, optimisticNote] } : r));
     if (selectedRequest?.id === id) {
       setSelectedRequest(prev => prev ? { ...prev, activity: [...prev.activity, optimisticNote] } : null);
     }
-    
+
     try {
       const res = await fetch(`/api/requests/${id}/note`, {
         method: 'POST',
@@ -483,213 +483,213 @@ export function App() {
       <div className="bg-orb orb-2"></div>
       <div className="bg-orb orb-3"></div>
       <div className="relative z-10 flex flex-col min-h-screen">
-      <Header
-        user={user}
-        view={view}
-        onViewChange={setView}
-        subTeam={subTeamFilter}
-        onSubTeamChange={setSubTeamFilter}
-        onNewRequest={() => setShowForm(true)}
-        onLogout={handleLogout}
-        requests={requests}
-        isLoading={isSubmitting}
-      />
-      <StatsBar requests={requests} />
-
-      {view === 'board' && (
-        <div className="flex items-center gap-3 px-6 py-3 glass border-y border-[var(--glass-border)]">
-          <div className="relative">
-            <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search requests..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-3 py-2 glass-input rounded-lg text-sm focus:outline-none w-48 transition-all text-[var(--text-primary)] placeholder-[var(--text-muted)]"
-            />
-          </div>
-          <select
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-            className="px-3 py-2 glass-input rounded-lg text-sm focus:outline-none transition-all text-[var(--text-primary)]"
-          >
-            <option value="All">All Priorities</option>
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
-          </select>
-          <select
-            value={assigneeFilter}
-            onChange={(e) => setAssigneeFilter(e.target.value)}
-            className="px-3 py-2 glass-input rounded-lg text-sm focus:outline-none transition-all text-[var(--text-primary)]"
-          >
-            <option value="All">All Assignees</option>
-            {[...new Set(requests.map(r => r.assignee).filter(Boolean))].map(a => (
-              <option key={a} value={a}>{a}</option>
-            ))}
-          </select>
-          <select
-            value={subTeamFilter}
-            onChange={(e) => setSubTeamFilter(e.target.value as SubTeam | 'All')}
-            className="px-3 py-2 glass-input rounded-lg text-sm focus:outline-none transition-all text-[var(--text-primary)]"
-          >
-            <option value="All">All Teams</option>
-            {SUBTEAMS.map(team => (
-              <option key={team} value={team}>{team}</option>
-            ))}
-          </select>
-          <select
-            value={labelFilter}
-            onChange={(e) => setLabelFilter(e.target.value)}
-            className="px-3 py-2 glass-input rounded-lg text-sm focus:outline-none transition-all text-[var(--text-primary)]"
-          >
-            <option value="All">All Labels</option>
-            {LABELS.map(label => (
-              <option key={label} value={label}>{label}</option>
-            ))}
-          </select>
-          {hasFilters && (
-            <button
-              onClick={() => { setSearchQuery(''); setPriorityFilter('All'); setAssigneeFilter('All'); setSubTeamFilter('All'); setLabelFilter('All'); }}
-              className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] px-2 py-1 hover:bg-[var(--surface-3)] rounded-lg transition-all cursor-pointer"
-            >
-              Clear
-            </button>
-          )}
-        </div>
-      )}
-
-      {error && (
-        <div className="mx-6 mt-4 px-4 py-3 bg-[var(--danger-glow)] border border-[var(--danger)]/30 rounded-xl text-[var(--danger)] text-sm flex items-center gap-2">
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-          </svg>
-          {error}
-        </div>
-      )}
-
-      {view === 'board' ? (
-        requestsLoading ? (
-          <SkeletonKanbanBoard />
-        ) : subTeamFilter === 'All' ? (
-          <KanbanBoard
-            requests={filteredRequests}
-            onCardClick={setSelectedRequest}
-          />
-        ) : (
-          <FRCTaskBoard
-            requests={filteredRequests.filter(r => r.subTeam === subTeamFilter)}
-            subTeam={subTeamFilter}
-            onTaskClick={setSelectedRequest}
-          />
-        )
-      ) : view === 'timeline' ? (
-        <div className="flex-1 p-6">
-          <div className="grid grid-cols-4 gap-4">
-            {BUILD_PHASES.filter(p => p !== 'ParkingLot').map(phase => {
-              const phaseRequests = requests.filter(r => r.buildPhase === phase);
-              return (
-                <div key={phase} className="glass rounded-xl p-4">
-                  <div 
-                    className="flex items-center gap-2 mb-4 pb-3 border-b"
-                    style={{ borderBottomColor: PHASE_COLORS[phase] }}
-                  >
-                    <div 
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: PHASE_COLORS[phase] }}
-                    />
-                    <h3 className="text-sm font-semibold text-[var(--text-primary)]">{phase}</h3>
-                    <span className="ml-auto text-xs text-[var(--text-muted)]">
-                      {PHASE_CONFIG[phase].deadline}
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-xs text-[var(--text-muted)]">
-                      <span>Total: {phaseRequests.length}</span>
-                      <span>Done: {phaseRequests.filter(r => r.taskStatus === 'Done').length}</span>
-                    </div>
-                    <div className="h-2 rounded-full bg-[var(--surface-3)] overflow-hidden">
-                      <div 
-                        className="h-full rounded-full transition-all"
-                        style={{ 
-                          width: `${phaseRequests.length ? (phaseRequests.filter(r => r.taskStatus === 'Done').length / phaseRequests.length) * 100 : 0}%`,
-                          backgroundColor: PHASE_COLORS[phase]
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-      ) : view === 'blockers' ? (
-        <div className="flex-1 p-6">
-          <div className="glass rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Blocked Tasks</h3>
-            {requests.filter(r => r.isBlocked || r.taskStatus === 'Blocked').length === 0 ? (
-              <p className="text-sm text-[var(--text-muted)]">No blocked tasks</p>
-            ) : (
-              <div className="space-y-3">
-                {requests.filter(r => r.isBlocked || r.taskStatus === 'Blocked').map(task => (
-                  <div 
-                    key={task.id}
-                    onClick={() => setSelectedRequest(task)}
-                    className="flex items-center justify-between p-3 bg-[var(--surface-2)] rounded-lg cursor-pointer hover:bg-[var(--surface-3)] transition-all"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-[var(--danger)]">⚠</span>
-                      <span className="text-sm text-[var(--text-primary)]">{task.title}</span>
-                      {task.subTeam && (
-                        <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: `${SUBTEAM_COLORS[task.subTeam]}20`, color: SUBTEAM_COLORS[task.subTeam] }}>
-                          {task.subTeam}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-xs text-[var(--text-muted)]">{task.blockerReason}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      ) : view === 'calendar' ? (
-        <CalendarView
-          requests={filteredRequests}
-          onRequestClick={setSelectedRequest}
-        />
-      ) : view === 'workload' ? (
-        <WorkloadView
+        <Header
+          user={user}
+          view={view}
+          onViewChange={setView}
+          subTeam={subTeamFilter}
+          onSubTeamChange={setSubTeamFilter}
+          onNewRequest={() => setShowForm(true)}
+          onLogout={handleLogout}
           requests={requests}
-          onRequestClick={setSelectedRequest}
-        />
-      ) : (
-        <ActivityLog requests={requests} />
-      )}
-
-      {selectedRequest && (
-        <DetailModal
-          request={selectedRequest}
-          onClose={() => setSelectedRequest(null)}
-          onAdvance={handleAdvanceStage}
-          onAddNote={handleAddNote}
-          onDelete={handleDeleteRequest}
-          onUpdate={handleUpdateRequest}
-          currentUser={user}
-          refreshRequests={fetchRequests}
-        />
-      )}
-
-      {showForm && (
-        <FormModal
-          onSubmit={handleCreateRequest}
-          onClose={() => setShowForm(false)}
           isLoading={isSubmitting}
         />
-      )}
+        <StatsBar requests={requests} />
+
+        {view === 'board' && (
+          <div className="flex items-center gap-3 px-6 py-3 glass border-y border-[var(--glass-border)]">
+            <div className="relative">
+              <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search requests..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 pr-3 py-2 glass-input rounded-lg text-sm focus:outline-none w-48 transition-all text-[var(--text-primary)] placeholder-[var(--text-muted)]"
+              />
+            </div>
+            <select
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
+              className="px-3 py-2 glass-input rounded-lg text-sm focus:outline-none transition-all text-[var(--text-primary)]"
+            >
+              <option value="All">All Priorities</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+            <select
+              value={assigneeFilter}
+              onChange={(e) => setAssigneeFilter(e.target.value)}
+              className="px-3 py-2 glass-input rounded-lg text-sm focus:outline-none transition-all text-[var(--text-primary)]"
+            >
+              <option value="All">All Assignees</option>
+              {[...new Set(requests.map(r => r.assignee).filter(Boolean))].map(a => (
+                <option key={a} value={a}>{a}</option>
+              ))}
+            </select>
+            <select
+              value={subTeamFilter}
+              onChange={(e) => setSubTeamFilter(e.target.value as SubTeam | 'All')}
+              className="px-3 py-2 glass-input rounded-lg text-sm focus:outline-none transition-all text-[var(--text-primary)]"
+            >
+              <option value="All">All Teams</option>
+              {SUBTEAMS.map(team => (
+                <option key={team} value={team}>{team}</option>
+              ))}
+            </select>
+            <select
+              value={labelFilter}
+              onChange={(e) => setLabelFilter(e.target.value)}
+              className="px-3 py-2 glass-input rounded-lg text-sm focus:outline-none transition-all text-[var(--text-primary)]"
+            >
+              <option value="All">All Labels</option>
+              {LABELS.map(label => (
+                <option key={label} value={label}>{label}</option>
+              ))}
+            </select>
+            {hasFilters && (
+              <button
+                onClick={() => { setSearchQuery(''); setPriorityFilter('All'); setAssigneeFilter('All'); setSubTeamFilter('All'); setLabelFilter('All'); }}
+                className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] px-2 py-1 hover:bg-[var(--surface-3)] rounded-lg transition-all cursor-pointer"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        )}
+
+        {error && (
+          <div className="mx-6 mt-4 px-4 py-3 bg-[var(--danger-glow)] border border-[var(--danger)]/30 rounded-xl text-[var(--danger)] text-sm flex items-center gap-2">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            {error}
+          </div>
+        )}
+
+        {view === 'board' ? (
+          requestsLoading ? (
+            <SkeletonKanbanBoard />
+          ) : subTeamFilter === 'All' ? (
+            <KanbanBoard
+              requests={filteredRequests}
+              onCardClick={setSelectedRequest}
+            />
+          ) : (
+            <FRCTaskBoard
+              requests={filteredRequests.filter(r => r.subTeam === subTeamFilter)}
+              subTeam={subTeamFilter}
+              onTaskClick={setSelectedRequest}
+            />
+          )
+        ) : view === 'timeline' ? (
+          <div className="flex-1 p-6">
+            <div className="grid grid-cols-4 gap-4">
+              {BUILD_PHASES.filter(p => p !== 'ParkingLot').map(phase => {
+                const phaseRequests = requests.filter(r => r.buildPhase === phase);
+                return (
+                  <div key={phase} className="glass rounded-xl p-4">
+                    <div
+                      className="flex items-center gap-2 mb-4 pb-3 border-b"
+                      style={{ borderBottomColor: PHASE_COLORS[phase] }}
+                    >
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: PHASE_COLORS[phase] }}
+                      />
+                      <h3 className="text-sm font-semibold text-[var(--text-primary)]">{phase}</h3>
+                      <span className="ml-auto text-xs text-[var(--text-muted)]">
+                        {PHASE_CONFIG[phase].deadline}
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-[var(--text-muted)]">
+                        <span>Total: {phaseRequests.length}</span>
+                        <span>Done: {phaseRequests.filter(r => r.taskStatus === 'Done').length}</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-[var(--surface-3)] overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all"
+                          style={{
+                            width: `${phaseRequests.length ? (phaseRequests.filter(r => r.taskStatus === 'Done').length / phaseRequests.length) * 100 : 0}%`,
+                            backgroundColor: PHASE_COLORS[phase]
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+        ) : view === 'blockers' ? (
+          <div className="flex-1 p-6">
+            <div className="glass rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Blocked Tasks</h3>
+              {requests.filter(r => r.isBlocked || r.taskStatus === 'Blocked').length === 0 ? (
+                <p className="text-sm text-[var(--text-muted)]">No blocked tasks</p>
+              ) : (
+                <div className="space-y-3">
+                  {requests.filter(r => r.isBlocked || r.taskStatus === 'Blocked').map(task => (
+                    <div
+                      key={task.id}
+                      onClick={() => setSelectedRequest(task)}
+                      className="flex items-center justify-between p-3 bg-[var(--surface-2)] rounded-lg cursor-pointer hover:bg-[var(--surface-3)] transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-[var(--danger)]">⚠</span>
+                        <span className="text-sm text-[var(--text-primary)]">{task.title}</span>
+                        {task.subTeam && (
+                          <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: `${SUBTEAM_COLORS[task.subTeam]}20`, color: SUBTEAM_COLORS[task.subTeam] }}>
+                            {task.subTeam}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-[var(--text-muted)]">{task.blockerReason}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        ) : view === 'calendar' ? (
+          <CalendarView
+            requests={filteredRequests}
+            onRequestClick={setSelectedRequest}
+          />
+        ) : view === 'workload' ? (
+          <WorkloadView
+            requests={requests}
+            onRequestClick={setSelectedRequest}
+          />
+        ) : (
+          <ActivityLog requests={requests} />
+        )}
+
+        {selectedRequest && (
+          <DetailModal
+            request={selectedRequest}
+            onClose={() => setSelectedRequest(null)}
+            onAdvance={handleAdvanceStage}
+            onAddNote={handleAddNote}
+            onDelete={handleDeleteRequest}
+            onUpdate={handleUpdateRequest}
+            currentUser={user}
+            refreshRequests={fetchRequests}
+          />
+        )}
+
+        {showForm && (
+          <FormModal
+            onSubmit={handleCreateRequest}
+            onClose={() => setShowForm(false)}
+            isLoading={isSubmitting}
+          />
+        )}
       </div>
     </div>
   );

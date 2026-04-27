@@ -16,7 +16,7 @@ interface HeaderProps {
 
 export function Header({ user, view, onViewChange, subTeam, onSubTeamChange, onNewRequest, onLogout, requests, isLoading }: HeaderProps) {
   return (
-    <header className="sticky top-4 z-50 mx-4 md:mx-6 rounded-2xl glass shadow-lg border border-[var(--glass-border)] transition-all">
+    <header className="sticky top-4 z-50 mx-4 md:mx-6 mb-6 rounded-2xl glass shadow-lg border border-[var(--glass-border)] transition-all">
       <div className="flex items-center justify-between px-6 h-16">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center shadow-lg accent-glow">
