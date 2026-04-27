@@ -31,17 +31,6 @@ export function Header({ user, view, onViewChange, subTeam, onSubTeamChange, onN
         </div>
 
         <div className="flex items-center gap-1 px-1 py-1 glass rounded-xl">
-          <a
-            href="/create"
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-              false
-                ? 'bg-[var(--accent)] text-white shadow-lg'
-                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)]'
-            }`}
-          >
-            + Create
-          </a>
-          <div className="w-px h-5 bg-[var(--glass-border)]"></div>
           <button
             onClick={() => onViewChange('board')}
             className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
