@@ -4,8 +4,8 @@ import { SessionUser, DesignRequest, SubTeam, SUBTEAMS, SUBTEAM_COLORS } from '.
 
 interface HeaderProps {
   user: SessionUser | null;
-  view: 'board' | 'calendar' | 'workload' | 'activity' | 'timeline' | 'parkinglot' | 'blockers';
-  onViewChange: (view: 'board' | 'calendar' | 'workload' | 'activity' | 'timeline' | 'parkinglot' | 'blockers') => void;
+  view: 'board' | 'calendar' | 'workload' | 'activity' | 'timeline' | 'blockers';
+  onViewChange: (view: 'board' | 'calendar' | 'workload' | 'activity' | 'timeline' | 'blockers') => void;
   subTeam?: SubTeam | 'All';
   onSubTeamChange?: (subTeam: SubTeam | 'All') => void;
   onNewRequest: () => void;
@@ -16,7 +16,7 @@ interface HeaderProps {
 
 export function Header({ user, view, onViewChange, subTeam, onSubTeamChange, onNewRequest, onLogout, requests, isLoading }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-50 glass border-b border-[var(--glass-border)]">
+    <header className="sticky top-4 z-50 mx-4 md:mx-6 rounded-2xl glass shadow-lg border border-[var(--glass-border)] transition-all">
       <div className="flex items-center justify-between px-6 h-16">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center shadow-lg accent-glow">
@@ -25,8 +25,8 @@ export function Header({ user, view, onViewChange, subTeam, onSubTeamChange, onN
             </svg>
           </div>
           <div className="flex flex-col">
-            <h1 className="text-base font-semibold tracking-tight text-[var(--text-primary)]">FRC</h1>
-            <p className="text-[10px] text-[var(--text-muted)] -mt-0.5 tracking-widest font-medium">Design Pipeline</p>
+            <h1 className="text-base font-bold tracking-tight text-[var(--text-primary)] font-tech uppercase">FRC</h1>
+            <p className="text-[10px] text-[var(--accent)] -mt-0.5 tracking-widest font-semibold font-tech uppercase">Design Pipeline</p>
           </div>
         </div>
 
@@ -50,16 +50,6 @@ export function Header({ user, view, onViewChange, subTeam, onSubTeamChange, onN
             }`}
           >
             Timeline
-          </button>
-          <button
-            onClick={() => onViewChange('parkinglot')}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
-              view === 'parkinglot'
-                ? 'bg-[var(--accent)] text-white shadow-lg'
-                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)]'
-            }`}
-          >
-            Parking Lot
           </button>
           <button
             onClick={() => onViewChange('blockers')}

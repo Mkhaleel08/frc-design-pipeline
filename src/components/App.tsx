@@ -222,7 +222,7 @@ export function App() {
   const [loading, setLoading] = useState(true);
   const [requests, setRequests] = useState<DesignRequest[]>([]);
   const [requestsLoading, setRequestsLoading] = useState(false);
-  const [view, setView] = useState<'board' | 'calendar' | 'workload' | 'activity' | 'timeline' | 'parkinglot' | 'blockers'>('board');
+  const [view, setView] = useState<'board' | 'calendar' | 'workload' | 'activity' | 'timeline' | 'blockers'>('board');
   const [subTeamFilter, setSubTeamFilter] = useState<SubTeam | 'All'>('All');
   const [selectedRequest, setSelectedRequest] = useState<DesignRequest | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -478,7 +478,11 @@ export function App() {
   });
 
   return (
-    <div className="min-h-screen flex flex-col gradient-mesh">
+    <div className="min-h-screen flex flex-col relative overflow-hidden bg-orb-container">
+      <div className="bg-orb orb-1"></div>
+      <div className="bg-orb orb-2"></div>
+      <div className="bg-orb orb-3"></div>
+      <div className="relative z-10 flex flex-col min-h-screen">
       <Header
         user={user}
         view={view}
@@ -621,12 +625,7 @@ export function App() {
             })}
           </div>
         </div>
-      ) : view === 'parkinglot' ? (
-        <FRCTaskBoard
-          requests={requests.filter(r => r.buildPhase === 'ParkingLot')}
-          subTeam={subTeamFilter === 'All' ? 'Mechanical' : subTeamFilter}
-          onTaskClick={setSelectedRequest}
-        />
+
       ) : view === 'blockers' ? (
         <div className="flex-1 p-6">
           <div className="glass rounded-xl p-6">
@@ -691,6 +690,7 @@ export function App() {
           isLoading={isSubmitting}
         />
       )}
+      </div>
     </div>
   );
 }
