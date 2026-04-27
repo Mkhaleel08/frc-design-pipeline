@@ -8,7 +8,7 @@ export type SubTeam = 'CAD' | 'Mechanical' | 'Electrical' | 'Business' | 'Progra
 
 export type Label = 'Urgent' | 'Needs Review' | 'Approved' | 'Blocked' | 'Ready' | 'In Progress';
 
-export type BuildPhase = 'Shape' | 'BuildCycle1' | 'BuildCycle2' | 'Cooldown' | 'ParkingLot';
+export type BuildPhase = 'Sprint1' | 'Sprint2' | 'Sprint3' | 'Sprint4' | 'Sprint5' | 'Sprint6' | 'Sprint7' | 'Sprint8';
 
 export type TaskStatus = 'Not Started' | 'In Progress' | 'Blocked' | 'Done';
 
@@ -100,7 +100,7 @@ export const TASK_STATUSES: TaskStatus[] = ['Not Started', 'In Progress', 'Block
 
 export const SUBTEAMS: SubTeam[] = ['CAD', 'Mechanical', 'Electrical', 'Business', 'Programming', 'Strategy'];
 
-export const BUILD_PHASES: BuildPhase[] = ['Shape', 'BuildCycle1', 'BuildCycle2', 'Cooldown', 'ParkingLot'];
+export const BUILD_PHASES: BuildPhase[] = ['Sprint1', 'Sprint2', 'Sprint3', 'Sprint4', 'Sprint5', 'Sprint6', 'Sprint7', 'Sprint8'];
 
 export const LABELS: Label[] = ['Urgent', 'Needs Review', 'Approved', 'Blocked', 'Ready', 'In Progress'];
 
@@ -111,11 +111,14 @@ export const WIRING_STATUSES: WiringStatus[] = ['Planned', 'Routed', 'Crimped', 
 export const SOFTWARE_SUBSYSTEMS: SoftwareSubsystem[] = ['Drivetrain', 'Arm', 'Intake', 'Vision', 'Auto', 'Diagnostics'];
 
 export const PHASE_CONFIG: Record<BuildPhase, { name: string; startWeek: number; endWeek: number; deadline: string }> = {
-  'Shape': { name: 'Shape', startWeek: 0, endWeek: 1, deadline: '2025-01-12' },
-  'BuildCycle1': { name: 'Build Cycle 1', startWeek: 2, endWeek: 3, deadline: '2025-01-26' },
-  'BuildCycle2': { name: 'Build Cycle 2', startWeek: 4, endWeek: 5, deadline: '2025-02-09' },
-  'Cooldown': { name: 'Cooldown', startWeek: 6, endWeek: 6, deadline: '2025-02-16' },
-  'ParkingLot': { name: 'Parking Lot', startWeek: -1, endWeek: -1, deadline: '' }
+  'Sprint1': { name: 'Sprint 1', startWeek: 1, endWeek: 1, deadline: '' },
+  'Sprint2': { name: 'Sprint 2', startWeek: 2, endWeek: 2, deadline: '' },
+  'Sprint3': { name: 'Sprint 3', startWeek: 3, endWeek: 3, deadline: '' },
+  'Sprint4': { name: 'Sprint 4', startWeek: 4, endWeek: 4, deadline: '' },
+  'Sprint5': { name: 'Sprint 5', startWeek: 5, endWeek: 5, deadline: '' },
+  'Sprint6': { name: 'Sprint 6', startWeek: 6, endWeek: 6, deadline: '' },
+  'Sprint7': { name: 'Sprint 7', startWeek: 7, endWeek: 7, deadline: '' },
+  'Sprint8': { name: 'Sprint 8', startWeek: 8, endWeek: 8, deadline: '' },
 };
 
 export const STAGE_COLORS: Record<Stage, string> = {
@@ -146,11 +149,14 @@ export const LABEL_COLORS: Record<Label, string> = {
 };
 
 export const PHASE_COLORS: Record<BuildPhase, string> = {
-  'Shape': '#6366F1',
-  'BuildCycle1': '#8B5CF6',
-  'BuildCycle2': '#F59E0B',
-  'Cooldown': '#10B981',
-  'ParkingLot': '#6B7280'
+  'Sprint1': '#6366F1',
+  'Sprint2': '#8B5CF6',
+  'Sprint3': '#EC4899',
+  'Sprint4': '#F59E0B',
+  'Sprint5': '#10B981',
+  'Sprint6': '#3B82F6',
+  'Sprint7': '#F97316',
+  'Sprint8': '#14B8A6',
 };
 
 export const TASK_STATUS_COLORS: Record<TaskStatus, string> = {

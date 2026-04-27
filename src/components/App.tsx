@@ -588,7 +588,7 @@ export function App() {
         ) : view === 'timeline' ? (
           <div className="flex-1 p-6">
             <div className="grid grid-cols-4 gap-4">
-              {BUILD_PHASES.filter(p => p !== 'ParkingLot').map(phase => {
+              {BUILD_PHASES.map(phase => {
                 const phaseRequests = requests.filter(r => r.buildPhase === phase);
                 return (
                   <div key={phase} className="glass rounded-xl p-4">
@@ -600,9 +600,9 @@ export function App() {
                         className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: PHASE_COLORS[phase] }}
                       />
-                      <h3 className="text-sm font-semibold text-[var(--text-primary)]">{phase}</h3>
+                      <h3 className="text-sm font-semibold text-[var(--text-primary)]">{PHASE_CONFIG[phase].name}</h3>
                       <span className="ml-auto text-xs text-[var(--text-muted)]">
-                        {PHASE_CONFIG[phase].deadline}
+                        Week {PHASE_CONFIG[phase].startWeek}
                       </span>
                     </div>
                     <div className="space-y-2">

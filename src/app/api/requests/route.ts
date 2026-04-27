@@ -2,37 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAllRequests, createRequest } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { notifyNewRequest, generateId } from '@/lib/slack';
-import { DesignRequest, PHASE_CONFIG, BuildPhase } from '@/lib/types';
+import { DesignRequest, BUILD_PHASES, BuildPhase, PHASE_CONFIG } from '@/lib/types';
 
-function determinePhase(buildPhase?: string): BuildPhase {
-  if (buildPhase && buildPhase !== 'ParkingLot') {
+function determineSprint(buildPhase?: string): BuildPhase {
+  if (buildPhase && BUILD_PHASES.includes(buildPhase as BuildPhase)) {
     return buildPhase as BuildPhase;
   }
-  return 'ParkingLot';
-}
-
-function isPhaseLocked(requestedPhase: BuildPhase, isLeadOverride: boolean): { locked: boolean; reason?: string } {
-  const now = new Date();
-  const currentWeek = Math.floor((now.getTime() - new Date('2025-01-05').getTime()) / (1000 * 60 * 60 * 24 * 7));
-  
-  const phaseConfigs: Record<BuildPhase, { endWeek: number; deadline: string }> = {
-    'Shape': { endWeek: 1, deadline: '2025-01-12' },
-    'BuildCycle1': { endWeek: 3, deadline: '2025-01-26' },
-    'BuildCycle2': { endWeek: 5, deadline: '2025-02-09' },
-    'Cooldown': { endWeek: 6, deadline: '2025-02-16' },
-    'ParkingLot': { endWeek: -1, deadline: '' }
-  };
-  
-  const phaseDeadline = new Date(phaseConfigs[requestedPhase].deadline);
-  
-  if (now > phaseDeadline && !isLeadOverride) {
-    return { 
-      locked: true, 
-      reason: `Phase ${requestedPhase} deadline has passed (${phaseConfigs[requestedPhase].deadline}). Tasks cannot be added without lead approval.` 
-    };
-  }
-  
-  return { locked: false };
+  return 'Sprint1';
 }
 
 export async function GET() {
@@ -69,21 +45,13 @@ export async function POST(request: NextRequest) {
       manufacturingStatus, machineRequired, weightEstimate,
       wiringStatus, componentReceived,
       testedOnRobot, softwareSubsystem,
-      leadOverride
     } = body;
 
     if (!title || typeof title !== 'string' || !title.trim()) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
     }
 
-    const targetPhase = determinePhase(buildPhase);
-    const isLead = session.user.role === 'Lead';
-    const canOverride = leadOverride === true && isLead;
-    
-    const phaseCheck = isPhaseLocked(targetPhase, canOverride);
-    if (phaseCheck.locked) {
-      return NextResponse.json({ error: phaseCheck.reason }, { status: 403 });
-    }
+    const targetSprint = determineSprint(buildPhase);
 
     const now = new Date().toISOString();
     const newRequest: DesignRequest = {
@@ -93,7 +61,7 @@ export async function POST(request: NextRequest) {
       priority: priority || 'Medium',
       subTeam: subTeam || null,
       labels: labels || [],
-      buildPhase: targetPhase,
+      buildPhase: targetSprint,
       taskStatus: taskStatus || 'Not Started',
       assignee: assignee || session.user.name,
       taskOwner: assignee || session.user.name,
@@ -107,7 +75,7 @@ export async function POST(request: NextRequest) {
       activity: [{
         id: generateId(),
         type: 'created',
-        message: `Created in phase ${targetPhase}`,
+        message: `Created in ${PHASE_CONFIG[targetSprint]?.name || targetSprint}`,
         timestamp: now,
         userId: session.user.id,
         userName: session.user.name,

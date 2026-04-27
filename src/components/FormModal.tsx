@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { SubTeam, SUBTEAMS, Label, LABELS, LABEL_COLORS, BuildPhase, BUILD_PHASES, TaskStatus, TASK_STATUSES, ManufacturingStatus, MANUFACTURING_STATUSES, WiringStatus, WIRING_STATUSES, SoftwareSubsystem, SOFTWARE_SUBSYSTEMS, SessionUser } from './types';
+import { SubTeam, SUBTEAMS, Label, LABELS, LABEL_COLORS, BuildPhase, BUILD_PHASES, PHASE_CONFIG, TaskStatus, TASK_STATUSES, ManufacturingStatus, MANUFACTURING_STATUSES, WiringStatus, WIRING_STATUSES, SoftwareSubsystem, SOFTWARE_SUBSYSTEMS, SessionUser } from './types';
 
 interface FormModalProps {
   onSubmit: (data: FormData) => Promise<void>;
@@ -31,7 +31,6 @@ export interface FormData {
   componentReceived?: boolean;
   testedOnRobot?: boolean;
   softwareSubsystem?: SoftwareSubsystem;
-  leadOverride?: boolean;
 }
 
 export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
@@ -45,7 +44,7 @@ export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
     attachments: '',
     notes: '',
     dueDate: '',
-    buildPhase: 'ParkingLot',
+    buildPhase: 'Sprint1',
     taskStatus: 'Not Started',
     dependency: '',
     isBlocked: false,
@@ -57,7 +56,6 @@ export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
     componentReceived: false,
     testedOnRobot: false,
     softwareSubsystem: undefined,
-    leadOverride: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -200,7 +198,7 @@ export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="glass-input rounded-xl p-4">
-              <label className="text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">Build Phase</label>
+              <label className="text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">Sprint</label>
               <select
                 value={formData.buildPhase}
                 onChange={handleChange('buildPhase')}
@@ -208,7 +206,7 @@ export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
                 disabled={isLoading}
               >
                 {BUILD_PHASES.map(phase => (
-                  <option key={phase} value={phase} className="bg-[var(--bg-vibrant-1)]">{phase}</option>
+                  <option key={phase} value={phase} className="bg-[var(--bg-vibrant-1)]">{PHASE_CONFIG[phase].name}</option>
                 ))}
               </select>
             </div>
