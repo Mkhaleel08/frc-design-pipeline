@@ -41,6 +41,24 @@ export async function updateRequest(id: string, updates: Partial<DesignRequest>)
   return requests[index];
 }
 
+export async function updateMultipleRequests(ids: string[], updates: Partial<DesignRequest>): Promise<number> {
+  const requests = await getAllRequests();
+  let updatedCount = 0;
+  
+  for (let i = 0; i < requests.length; i++) {
+    if (ids.includes(requests[i].id)) {
+      requests[i] = { ...requests[i], ...updates, updatedAt: new Date().toISOString() };
+      updatedCount++;
+    }
+  }
+  
+  if (updatedCount > 0) {
+    await redis.set(REQUESTS_KEY, requests);
+  }
+  
+  return updatedCount;
+}
+
 export async function deleteRequest(id: string): Promise<boolean> {
   const requests = await getAllRequests();
   const filtered = requests.filter(r => r.id !== id);

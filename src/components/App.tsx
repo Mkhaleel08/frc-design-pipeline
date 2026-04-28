@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Header } from './Header';
 import { StatsBar } from './StatsBar';
 import { KanbanBoard } from './KanbanBoard';
@@ -10,7 +10,12 @@ import { FormModal, FormData } from './FormModal';
 import { CalendarView } from './CalendarView';
 import { WorkloadView } from './WorkloadView';
 import { FRCTaskBoard } from './FRCTaskBoard';
+import { DashboardView } from './DashboardView';
+import { SprintBurndown } from './SprintBurndown';
+import { useToast } from './Toast';
 import { DesignRequest, SessionUser, STAGES, SUBTEAMS, SubTeam, LABELS, Label, PHASE_COLORS, BUILD_PHASES, BuildPhase, PHASE_CONFIG, SUBTEAM_COLORS } from './types';
+
+type ViewType = 'dashboard' | 'board' | 'burndown' | 'timeline' | 'blockers' | 'calendar' | 'workload' | 'activity';
 
 function RegisterForm({ onRegister, isLoading, error }: { onRegister: (name: string, email: string, password: string, inviteCode: string) => void; isLoading: boolean; error: string | null }) {
   const [name, setName] = useState('');
@@ -222,7 +227,7 @@ export function App() {
   const [loading, setLoading] = useState(true);
   const [requests, setRequests] = useState<DesignRequest[]>([]);
   const [requestsLoading, setRequestsLoading] = useState(false);
-  const [view, setView] = useState<'board' | 'calendar' | 'workload' | 'activity' | 'timeline' | 'blockers'>('board');
+  const [view, setView] = useState<ViewType>('dashboard');
   const [subTeamFilter, setSubTeamFilter] = useState<SubTeam | 'All'>('All');
   const [selectedRequest, setSelectedRequest] = useState<DesignRequest | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -232,6 +237,40 @@ export function App() {
   const [priorityFilter, setPriorityFilter] = useState('All');
   const [assigneeFilter, setAssigneeFilter] = useState('All');
   const [labelFilter, setLabelFilter] = useState('All');
+  const [sprintFilter, setSprintFilter] = useState('All');
+  const [selectedRequestIds, setSelectedRequestIds] = useState<string[]>([]);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [competitionDate, setCompetitionDate] = useState(() => {
+    if (typeof window !== 'undefined') return localStorage.getItem('frc-comp-date') || '';
+    return '';
+  });
+  const { toast } = useToast();
+
+  // Theme effect
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  // Persist competition date
+  useEffect(() => {
+    if (typeof window !== 'undefined') localStorage.setItem('frc-comp-date', competitionDate);
+  }, [competitionDate]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
+      if (e.key === 'n' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); setShowForm(true); }
+      if (e.key === 'Escape') { setShowForm(false); setSelectedRequest(null); }
+      if (e.key === '1') setView('dashboard');
+      if (e.key === '2') setView('board');
+      if (e.key === '3') setView('burndown');
+      if (e.key === '4') setView('timeline');
+      if (e.key === '/') { e.preventDefault(); document.querySelector<HTMLInputElement>('#search-input')?.focus(); }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     checkAuth();
@@ -305,7 +344,7 @@ export function App() {
     setRequests([]);
     setSelectedRequest(null);
     setShowForm(false);
-    setView('board');
+    setView('dashboard');
     setSubTeamFilter('All');
     setSearchQuery('');
     setPriorityFilter('All');
@@ -328,6 +367,7 @@ export function App() {
         const data = await res.json();
         setRequests(prev => [...prev, data.request]);
         setShowForm(false);
+        toast('Request created successfully', 'success');
       } else {
         const err = await res.json();
         setError(err.error || 'Failed to create request');
@@ -427,6 +467,7 @@ export function App() {
       if (res.ok) {
         setRequests(prev => prev.filter(r => r.id !== id));
         setSelectedRequest(null);
+        toast('Request deleted', 'info');
       }
     } catch (e) {
       console.error('Failed to delete request:', e);
@@ -450,6 +491,65 @@ export function App() {
     }
   }
 
+  const handleDragUpdate = async (id: string, newStage: string) => {
+    // Optimistic update
+    const previousRequests = [...requests];
+    setRequests(prev => prev.map(r => r.id === id ? { ...r, stage: newStage as any, taskStatus: newStage === 'Done' ? 'Done' : 'In Progress' } : r));
+
+    try {
+      const res = await fetch(`/api/requests/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stage: newStage, taskStatus: newStage === 'Done' ? 'Done' : 'In Progress' }),
+      });
+      if (!res.ok) {
+        throw new Error('Failed to update stage');
+      }
+      toast('Stage updated', 'success');
+    } catch (e) {
+      setRequests(previousRequests);
+      toast('Failed to update stage', 'error');
+    }
+  };
+
+  const handleBulkUpdate = async (updates: Partial<DesignRequest>) => {
+    if (selectedRequestIds.length === 0) return;
+    
+    // Optimistic update
+    const previousRequests = [...requests];
+    setRequests(prev => prev.map(r => selectedRequestIds.includes(r.id) ? { ...r, ...updates } : r));
+
+    try {
+      const res = await fetch(`/api/requests/bulk`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedRequestIds, updates }),
+      });
+      if (!res.ok) {
+        throw new Error('Failed to perform bulk update');
+      }
+      toast(`Updated ${selectedRequestIds.length} requests`, 'success');
+      setSelectedRequestIds([]);
+    } catch (e) {
+      setRequests(previousRequests);
+      toast('Bulk update failed', 'error');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedRequestIds.length === 0 || !confirm(`Are you sure you want to delete ${selectedRequestIds.length} requests?`)) return;
+
+    // We don't have a bulk delete endpoint yet, so we'll run sequentially for now.
+    try {
+      await Promise.all(selectedRequestIds.map(id => fetch(`/api/requests/${id}`, { method: 'DELETE' })));
+      setRequests(prev => prev.filter(r => !selectedRequestIds.includes(r.id)));
+      toast(`Deleted ${selectedRequestIds.length} requests`, 'info');
+      setSelectedRequestIds([]);
+    } catch (e) {
+      toast('Failed to delete some requests', 'error');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center gradient-mesh">
@@ -467,14 +567,15 @@ export function App() {
     );
   }
 
-  const hasFilters = searchQuery || priorityFilter !== 'All' || assigneeFilter !== 'All' || labelFilter !== 'All';
+  const hasFilters = searchQuery || priorityFilter !== 'All' || assigneeFilter !== 'All' || labelFilter !== 'All' || sprintFilter !== 'All';
 
   const filteredRequests = requests.filter(r => {
     const matchesSearch = r.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesPriority = priorityFilter === 'All' || r.priority === priorityFilter;
     const matchesAssignee = assigneeFilter === 'All' || r.assignee === assigneeFilter;
     const matchesLabel = labelFilter === 'All' || (r.labels && r.labels.includes(labelFilter as Label));
-    return matchesSearch && matchesPriority && matchesAssignee && matchesLabel;
+    const matchesSprint = sprintFilter === 'All' || r.buildPhase === sprintFilter;
+    return matchesSearch && matchesPriority && matchesAssignee && matchesLabel && matchesSprint;
   });
 
   return (
@@ -493,6 +594,10 @@ export function App() {
           onLogout={handleLogout}
           requests={requests}
           isLoading={isSubmitting}
+          theme={theme}
+          onThemeToggle={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+          competitionDate={competitionDate}
+          onCompetitionDateChange={setCompetitionDate}
         />
         <StatsBar requests={requests} />
 
@@ -503,8 +608,9 @@ export function App() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input
+                id="search-input"
                 type="text"
-                placeholder="Search requests..."
+                placeholder="Search... (press /)"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 pr-3 py-2 glass-input rounded-lg text-sm focus:outline-none w-48 transition-all text-[var(--text-primary)] placeholder-[var(--text-muted)]"
@@ -550,9 +656,19 @@ export function App() {
                 <option key={label} value={label}>{label}</option>
               ))}
             </select>
+            <select
+              value={sprintFilter}
+              onChange={(e) => setSprintFilter(e.target.value)}
+              className="px-3 py-2 glass-input rounded-lg text-sm focus:outline-none transition-all text-[var(--text-primary)]"
+            >
+              <option value="All">All Sprints</option>
+              {BUILD_PHASES.map(phase => (
+                <option key={phase} value={phase}>{PHASE_CONFIG[phase].name}</option>
+              ))}
+            </select>
             {hasFilters && (
               <button
-                onClick={() => { setSearchQuery(''); setPriorityFilter('All'); setAssigneeFilter('All'); setSubTeamFilter('All'); setLabelFilter('All'); }}
+                onClick={() => { setSearchQuery(''); setPriorityFilter('All'); setAssigneeFilter('All'); setSubTeamFilter('All'); setLabelFilter('All'); setSprintFilter('All'); }}
                 className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] px-2 py-1 hover:bg-[var(--surface-3)] rounded-lg transition-all cursor-pointer"
               >
                 Clear
@@ -570,24 +686,97 @@ export function App() {
           </div>
         )}
 
-        {view === 'board' ? (
-          requestsLoading ? (
-            <SkeletonKanbanBoard />
-          ) : subTeamFilter === 'All' ? (
-            <KanbanBoard
-              requests={filteredRequests}
-              onCardClick={setSelectedRequest}
-            />
-          ) : (
-            <FRCTaskBoard
-              requests={filteredRequests.filter(r => r.subTeam === subTeamFilter)}
-              subTeam={subTeamFilter}
-              onTaskClick={setSelectedRequest}
-            />
-          )
+        {view === 'dashboard' ? (
+          <DashboardView
+            requests={requests}
+            onRequestClick={setSelectedRequest}
+            currentUserName={user.name}
+            competitionDate={competitionDate || undefined}
+          />
+        ) : view === 'board' ? (
+          <div className="flex-1 flex flex-col relative h-full">
+            {requestsLoading ? (
+              <SkeletonKanbanBoard />
+            ) : subTeamFilter === 'All' ? (
+              <KanbanBoard
+                requests={filteredRequests}
+                onCardClick={setSelectedRequest}
+                onRequestUpdate={handleDragUpdate}
+                selectedIds={selectedRequestIds}
+                onToggleSelect={(id) => setSelectedRequestIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id])}
+              />
+            ) : (
+              <FRCTaskBoard
+                requests={filteredRequests.filter(r => r.subTeam === subTeamFilter)}
+                subTeam={subTeamFilter}
+                onTaskClick={setSelectedRequest}
+                onRequestUpdate={handleDragUpdate}
+              />
+            )}
+
+            {/* Bulk Action Bar */}
+            {selectedRequestIds.length > 0 && view === 'board' && subTeamFilter === 'All' && (
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 glass-card rounded-2xl px-6 py-3 shadow-2xl flex items-center gap-4 animate-slideUp z-40 border border-[var(--accent)]/30">
+                <div className="flex items-center gap-2 pr-4 border-r border-[var(--glass-border)]">
+                  <span className="w-6 h-6 rounded-full bg-[var(--accent)] flex items-center justify-center text-white text-xs font-bold">
+                    {selectedRequestIds.length}
+                  </span>
+                  <span className="text-sm font-medium text-[var(--text-primary)]">Selected</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <select
+                    className="px-3 py-1.5 glass-input rounded-lg text-sm text-[var(--text-primary)] focus:outline-none"
+                    onChange={(e) => {
+                      if (e.target.value) handleBulkUpdate({ buildPhase: e.target.value as BuildPhase });
+                      e.target.value = '';
+                    }}
+                  >
+                    <option value="">Move to Sprint...</option>
+                    {BUILD_PHASES.map(p => <option key={p} value={p}>{PHASE_CONFIG[p].name}</option>)}
+                  </select>
+
+                  <select
+                    className="px-3 py-1.5 glass-input rounded-lg text-sm text-[var(--text-primary)] focus:outline-none"
+                    onChange={(e) => {
+                      if (e.target.value) handleBulkUpdate({ priority: e.target.value as any });
+                      e.target.value = '';
+                    }}
+                  >
+                    <option value="">Set Priority...</option>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                  </select>
+
+                  <button
+                    onClick={handleBulkDelete}
+                    className="ml-2 p-2 text-[var(--danger)] hover:bg-[var(--danger-glow)] rounded-lg transition-colors cursor-pointer"
+                    title="Delete Selected"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedRequestIds([])}
+                    className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded-lg transition-colors cursor-pointer"
+                    title="Clear Selection"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : view === 'burndown' ? (
+          <SprintBurndown requests={requests} />
         ) : view === 'timeline' ? (
           <div className="flex-1 p-6">
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {BUILD_PHASES.map(phase => {
                 const phaseRequests = requests.filter(r => r.buildPhase === phase);
                 return (
@@ -605,21 +794,33 @@ export function App() {
                         Week {PHASE_CONFIG[phase].startWeek}
                       </span>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-xs text-[var(--text-muted)]">
-                        <span>Total: {phaseRequests.length}</span>
-                        <span>Done: {phaseRequests.filter(r => r.taskStatus === 'Done').length}</span>
+                    {phaseRequests.length === 0 ? (
+                      <div className="text-center py-4">
+                        <p className="text-xs text-[var(--text-muted)]">No tasks yet</p>
+                        <button
+                          onClick={() => setShowForm(true)}
+                          className="text-[10px] text-[var(--accent)] hover:underline mt-1 cursor-pointer"
+                        >
+                          + Add task
+                        </button>
                       </div>
-                      <div className="h-2 rounded-full bg-[var(--surface-3)] overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{
-                            width: `${phaseRequests.length ? (phaseRequests.filter(r => r.taskStatus === 'Done').length / phaseRequests.length) * 100 : 0}%`,
-                            backgroundColor: PHASE_COLORS[phase]
-                          }}
-                        />
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs text-[var(--text-muted)]">
+                          <span>Total: {phaseRequests.length}</span>
+                          <span>Done: {phaseRequests.filter(r => r.taskStatus === 'Done').length}</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-[var(--surface-3)] overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{
+                              width: `${phaseRequests.length ? (phaseRequests.filter(r => r.taskStatus === 'Done').length / phaseRequests.length) * 100 : 0}%`,
+                              backgroundColor: PHASE_COLORS[phase]
+                            }}
+                          />
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 );
               })}
@@ -631,7 +832,12 @@ export function App() {
             <div className="glass rounded-xl p-6">
               <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Blocked Tasks</h3>
               {requests.filter(r => r.isBlocked || r.taskStatus === 'Blocked').length === 0 ? (
-                <p className="text-sm text-[var(--text-muted)]">No blocked tasks</p>
+                <div className="text-center py-8">
+                  <svg className="w-12 h-12 mx-auto mb-3 text-emerald-400/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-sm text-[var(--text-muted)]">No blocked tasks — great job! 🎉</p>
+                </div>
               ) : (
                 <div className="space-y-3">
                   {requests.filter(r => r.isBlocked || r.taskStatus === 'Blocked').map(task => (

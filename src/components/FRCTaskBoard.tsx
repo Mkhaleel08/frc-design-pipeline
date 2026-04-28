@@ -12,6 +12,7 @@ interface FRCTaskBoardProps {
   requests: DesignRequest[];
   subTeam: SubTeam;
   onTaskClick: (request: DesignRequest) => void;
+  onRequestUpdate?: (id: string, newStage: string) => void;
 }
 
 const SUBTEAM_TASKS: Record<SubTeam, TaskStatus[]> = {
