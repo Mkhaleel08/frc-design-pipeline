@@ -65,7 +65,7 @@ function RegisterForm({ onRegister, isLoading, error }: { onRegister: (name: str
             </svg>
           </div>
         </div>
-        <h1 className="text-2xl font-semibold mb-2 text-center text-[var(--text-primary)]">FRC Design Pipeline</h1>
+        <h1 className="text-2xl font-semibold mb-2 text-center text-[var(--text-primary)]">FRC Parts Request</h1>
         <p className="text-[var(--text-muted)] mb-6 text-center">Create your account to get started</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -321,10 +321,10 @@ export function App() {
       if (res.ok) {
         const data = await res.json();
         setUser({
-          id: email,
-          name: name,
-          email: email,
-          role: 'Designer',
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          role: data.user.role,
         });
         fetchRequests();
       } else {
@@ -492,6 +492,13 @@ export function App() {
   }
 
   const handleDragUpdate = async (id: string, newStage: string) => {
+    // Check if moving to Assigned without an assignee
+    const request = requests.find(r => r.id === id);
+    if (newStage === 'Assigned' && request && !request.assignee) {
+      toast('Task must be assigned first', 'error');
+      return;
+    }
+
     // Optimistic update
     const previousRequests = [...requests];
     setRequests(prev => prev.map(r => r.id === id ? { ...r, stage: newStage as any, taskStatus: newStage === 'Done' ? 'Done' : 'In Progress' } : r));

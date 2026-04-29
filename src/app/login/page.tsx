@@ -65,7 +65,7 @@ export default function LoginPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <h1 className="text-2xl font-semibold text-[#FAFAFA] mb-2">FRC Design Pipeline</h1>
+            <h1 className="text-2xl font-semibold text-[#FAFAFA] mb-2">FRC Parts Request</h1>
             <p className="text-[#737373]">Sign in to your account</p>
           </div>
 

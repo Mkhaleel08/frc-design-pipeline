@@ -56,7 +56,7 @@ export function Header({
           </div>
           <div className="flex flex-col">
             <h1 className="text-base font-bold tracking-tight text-[var(--text-primary)] font-tech uppercase">FRC</h1>
-            <p className="text-[10px] text-[var(--accent)] -mt-0.5 tracking-widest font-semibold font-tech uppercase">Design Pipeline</p>
+            <p className="text-[10px] text-[var(--accent)] -mt-0.5 tracking-widest font-semibold font-tech uppercase">Parts Request</p>
           </div>
           {/* Competition countdown badge */}
           {daysUntilComp !== null && (
@@ -148,27 +148,31 @@ export function Header({
             )}
           </div>
 
-          <button
-            onClick={onNewRequest}
-            disabled={!user || isLoading}
-            className="hidden md:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#10B981] to-[#059669] hover:from-[#059669] hover:to-[#047857] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all active:scale-[0.98] shadow-lg hover:shadow-[var(--accent-glow)] cursor-pointer"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            New Request
-          </button>
+          {(user?.role === 'Admin' || user?.role === 'Student SEB') && (
+            <>
+              <button
+                onClick={onNewRequest}
+                disabled={isLoading}
+                className="hidden md:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#10B981] to-[#059669] hover:from-[#059669] hover:to-[#047857] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all active:scale-[0.98] shadow-lg hover:shadow-[var(--accent-glow)] cursor-pointer"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                New Request
+              </button>
 
-          {/* Mobile new button */}
-          <button
-            onClick={onNewRequest}
-            disabled={!user || isLoading}
-            className="md:hidden p-2 bg-gradient-to-r from-[#10B981] to-[#059669] text-white rounded-xl cursor-pointer"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-          </button>
+              {/* Mobile new button */}
+              <button
+                onClick={onNewRequest}
+                disabled={isLoading}
+                className="md:hidden p-2 bg-gradient-to-r from-[#10B981] to-[#059669] text-white rounded-xl cursor-pointer"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
+            </>
+          )}
 
           {user && (
             <div className="hidden md:flex items-center gap-3 pl-4 border-l border-[var(--glass-border)]">

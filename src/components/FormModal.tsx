@@ -98,8 +98,8 @@ export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
       <div className="relative glass-card rounded-2xl w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col animate-scaleIn shadow-2xl">
         <div className="flex items-center justify-between p-6 border-b border-[var(--glass-border)] bg-[var(--surface-2)]">
           <div>
-            <h2 className="text-xl font-semibold text-[var(--text-primary)]">New Design Request</h2>
-            <p className="text-xs text-[var(--text-muted)] mt-1">Create a new design request for the team</p>
+            <h2 className="text-xl font-semibold text-[var(--text-primary)]">New Parts Request</h2>
+            <p className="text-xs text-[var(--text-muted)] mt-1">Create a new parts request for the team</p>
           </div>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-[var(--surface-3)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,27 +174,6 @@ export function FormModal({ onSubmit, onClose, isLoading }: FormModalProps) {
             </div>
           </div>
 
-          <div className="glass-input rounded-xl p-4">
-            <label className="text-xs text-[var(--text-secondary)] uppercase tracking-wider font-semibold mb-3 block">Labels</label>
-            <div className="flex flex-wrap gap-2">
-              {LABELS.map(label => (
-                <button
-                  key={label}
-                  type="button"
-                  onClick={() => toggleLabel(label)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer`}
-                  style={{
-                    backgroundColor: formData.labels.includes(label)
-                      ? LABEL_COLORS[label]
-                      : `${LABEL_COLORS[label]}20`,
-                    color: formData.labels.includes(label) ? 'white' : LABEL_COLORS[label]
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="glass-input rounded-xl p-4">

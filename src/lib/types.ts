@@ -2,9 +2,9 @@ export type Stage = 'Submitted' | 'Assigned' | 'In Progress' | 'Review' | 'Fabri
 
 export type Priority = 'High' | 'Medium' | 'Low';
 
-export type SubTeam = 'CAD' | 'Mechanical' | 'Electrical' | 'Business' | 'Programming' | 'Strategy';
+export type SubTeam = 'CAD' | 'Mechanical';
 
-export type Label = 'Urgent' | 'Needs Review' | 'Approved' | 'Blocked' | 'Ready' | 'In Progress';
+export type Label = 'Urgent' | 'Needs Review' | 'Approved' | 'Ready' | 'In Progress';
 
 export type BuildPhase = 'Sprint1' | 'Sprint2' | 'Sprint3' | 'Sprint4' | 'Sprint5' | 'Sprint6' | 'Sprint7' | 'Sprint8';
 
@@ -16,7 +16,7 @@ export type WiringStatus = 'Planned' | 'Routed' | 'Crimped' | 'Tested';
 
 export type SoftwareSubsystem = 'Drivetrain' | 'Arm' | 'Intake' | 'Vision' | 'Auto' | 'Diagnostics';
 
-export type UserRole = 'Designer' | 'Lead';
+export type UserRole = 'Admin' | 'Student SEB' | 'Project Lead' | 'Normal User';
 
 export type ActivityType = 'created' | 'stage_change' | 'note_added' | 'version_created' | 'phase_change' | 'triage';
 
@@ -105,11 +105,11 @@ export const STAGES: Stage[] = ['Submitted', 'Assigned', 'In Progress', 'Review'
 
 export const TASK_STATUSES: TaskStatus[] = ['Not Started', 'In Progress', 'Blocked', 'Done'];
 
-export const SUBTEAMS: SubTeam[] = ['CAD', 'Mechanical', 'Electrical', 'Business', 'Programming', 'Strategy'];
+export const SUBTEAMS: SubTeam[] = ['CAD', 'Mechanical'];
 
 export const BUILD_PHASES: BuildPhase[] = ['Sprint1', 'Sprint2', 'Sprint3', 'Sprint4', 'Sprint5', 'Sprint6', 'Sprint7', 'Sprint8'];
 
-export const LABELS: Label[] = ['Urgent', 'Needs Review', 'Approved', 'Blocked', 'Ready', 'In Progress'];
+export const LABELS: Label[] = ['Urgent', 'Needs Review', 'Approved', 'Ready', 'In Progress'];
 
 export const MANUFACTURING_STATUSES: ManufacturingStatus[] = ['CAD', 'CAM', 'Cut', 'Assembly'];
 
@@ -146,20 +146,12 @@ export const STAGE_COLORS: Record<Stage, string> = {
 
 export const SUBTEAM_COLORS: Record<SubTeam, string> = {
   'CAD': '#F97316',
-  'Mechanical': '#EF4444',
-  'Electrical': '#3B82F6',
-  'Business': '#10B981',
-  'Programming': '#8B5CF6',
-  'Strategy': '#F59E0B'
+  'Mechanical': '#EF4444'
 };
 
 export const SUBTEAM_ICONS: Record<SubTeam, string> = {
   'CAD': 'M9 3v8l3-3 3 3 3-3 3-3V3M9 3H7a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2z',
-  'Mechanical': 'M10.325 4.317c.426-1.256 1.623-1.256 2.05 0m1.014 9.67c.35.284.82.42 1.305.385.964-.068 1.75-.954 1.75-1.952v-1.557c0-1.22-.987-2.195-2.167-2.05-1.026.126-1.827 1.113-1.693 2.159',
-  'Electrical': 'M9 3v2m6-2v2M9 3v6m6-6v6m6-4v8m-6 4h8m2-18h-2m-4 0h-2m4 0H7',
-  'Business': 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-5a3 3 0 00-3-3h-1m8 3h3m-3 3v-3m0 3h3',
-  'Programming': 'M10 20l4-16m4 4l4 4 4-4-4-4-4 4z',
-  'Strategy': 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2 0M9 5a2 2 0 012-2h2a2 2 0 012 2'
+  'Mechanical': 'M10.325 4.317c.426-1.256 1.623-1.256 2.05 0m1.014 9.67c.35.284.82.42 1.305.385.964-.068 1.75-.954 1.75-1.952v-1.557c0-1.22-.987-2.195-2.167-2.05-1.026.126-1.827 1.113-1.693 2.159'
 };
 
 export const PRIORITY_COLORS: Record<Priority, string> = {
@@ -172,7 +164,6 @@ export const LABEL_COLORS: Record<Label, string> = {
   'Urgent': '#EF4444',
   'Needs Review': '#F59E0B',
   'Approved': '#10B981',
-  'Blocked': '#DC2626',
   'Ready': '#3B82F6',
   'In Progress': '#8B5CF6'
 };

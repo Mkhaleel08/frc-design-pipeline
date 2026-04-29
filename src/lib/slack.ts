@@ -43,11 +43,11 @@ export async function notifyNewRequest(request: DesignRequest, userName: string)
   const teamEmoji = request.subTeam ? `:tools:${request.subTeam}` : ':briefcase:';
   
   await sendSlackNotification({
-    text: `New design request: ${request.title}`,
+    text: `New parts request: ${request.title}`,
     blocks: [
       {
         type: 'header',
-        text: { type: 'plain_text', text: ':page_facing_up: New Design Request', emoji: true }
+        text: { type: 'plain_text', text: ':page_facing_up: New Parts Request', emoji: true }
       },
       {
         type: 'section',

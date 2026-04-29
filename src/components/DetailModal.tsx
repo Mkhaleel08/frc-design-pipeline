@@ -143,7 +143,8 @@ export function DetailModal({ request, onClose, onAdvance, onAddNote, onDelete, 
 
   const currentStageIndex = STAGES.indexOf(request.stage);
   const nextStage = currentStageIndex < STAGES.length - 1 ? STAGES[currentStageIndex + 1] : null;
-  const isLead = currentUser?.role === 'Lead';
+  const isAdmin = currentUser?.role === 'Admin';
+  const canEdit = currentUser?.role === 'Admin' || currentUser?.role === 'Project Lead';
 
 return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -453,15 +454,17 @@ return (
               </>
             ) : (
               <>
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="px-3 py-2 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)] transition-colors flex items-center gap-1 rounded-lg cursor-pointer"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  Edit
-                </button>
+                {canEdit && (
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="px-3 py-2 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)] transition-colors flex items-center gap-1 rounded-lg cursor-pointer"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Edit
+                  </button>
+                )}
                 <button
                   onClick={async () => {
                     if (isSubmitting) return;
@@ -480,7 +483,7 @@ return (
                   </svg>
                   Save V{request.version + 1}
                 </button>
-                {isLead && (
+                {isAdmin && (
                   <button
                     onClick={handleDelete}
                     disabled={isSubmitting}

@@ -3,7 +3,7 @@ import "./globals.css";
 import { ToastProvider } from "@/components/Toast";
 
 export const metadata: Metadata = {
-  title: "FRC Design Pipeline",
+  title: "FRC Parts Request",
   description: "Kanban-style engineering workflow tracker for FRC robotics team",
 };
 

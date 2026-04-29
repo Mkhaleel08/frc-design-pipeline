@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { createUser, getUserByEmail, getUserCount, generateId } from '@/lib/db';
 import { setSession } from '@/lib/auth';
-import { User } from '@/lib/types';
+import { User, UserRole } from '@/lib/types';
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,9 +30,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invite code is required' }, { status: 400 });
     }
 
-    const validInviteCode = process.env.INVITE_CODE;
-    if (inviteCode !== validInviteCode) {
-      return NextResponse.json({ error: 'Invalid invite code' }, { status: 401 });
+    // Verify invite code and determine role
+    let assignedRole: UserRole | null = null;
+    
+    if (inviteCode === process.env.ADMIN_INVITE_CODE) {
+      assignedRole = 'Admin';
+    } else if (inviteCode === process.env.SEB_INVITE_CODE) {
+      assignedRole = 'Student SEB';
+    } else if (inviteCode === process.env.LEAD_INVITE_CODE) {
+      assignedRole = 'Project Lead';
+    } else if (inviteCode === process.env.USER_INVITE_CODE) {
+      assignedRole = 'Normal User';
+    }
+
+    if (!assignedRole) {
+      return NextResponse.json(
+        { error: 'Invalid invite code' },
+        { status: 400 }
+      );
     }
 
     const existingUser = await getUserByEmail(email);
@@ -42,15 +57,13 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const userCount = await getUserCount();
-    const role = userCount === 0 ? 'Lead' : 'Designer';
 
     const newUser: User = {
       id: generateId(),
       email: email.slice(0, 255),
       name: name.slice(0, 50),
       password: hashedPassword,
-      role,
+      role: assignedRole,
       createdAt: new Date().toISOString(),
     };
 
